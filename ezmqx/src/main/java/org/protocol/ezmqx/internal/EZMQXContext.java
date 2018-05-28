@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.ws.rs.core.Response;
@@ -65,7 +66,7 @@ public class EZMQXContext {
     private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXContext.class);
 
     private EZMQXContext() throws EZMQXException {
-        mAMLRepDic = new HashMap<String, Representation>();
+        mAMLRepDic = new ConcurrentHashMap<String, Representation>();
         mUsedPorts = new HashMap<Integer, Boolean>();
         mPorts = new HashMap<Integer, Integer>();
         mInitialized = new AtomicBoolean(false);

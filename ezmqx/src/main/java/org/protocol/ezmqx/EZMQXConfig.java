@@ -92,7 +92,7 @@ public class EZMQXConfig {
     /**
      * Start/Configure EZMQX in docker mode.
      */
-    public void startDockerMode() throws EZMQXException {
+    public synchronized void startDockerMode() throws EZMQXException {
         if (mInitialized.get()) {
             throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
         }
@@ -108,7 +108,7 @@ public class EZMQXConfig {
      * @param tnsAddr TNS address [IP:Port], if useTns is false this value
      *        will be ignored.
      */
-    public void startStandAloneMode(boolean useTns, String tnsAddr) throws EZMQXException {
+    public synchronized void startStandAloneMode(boolean useTns, String tnsAddr) throws EZMQXException {
         if (mInitialized.get()) {
             throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
         }
@@ -134,7 +134,7 @@ public class EZMQXConfig {
     /**
      * Reset/Terminate EZMQX stack.
      */
-    public void reset() throws EZMQXException {
+    public synchronized void reset() throws EZMQXException {
         if (!mInitialized.get()) {
             throw new EZMQXException("Not initialized", EZMQXErrorCode.NotInitialized);
         }

@@ -207,7 +207,7 @@ public class EZMQXSubscriber {
      * Terminate EZMQX subscriber.
      *
      */
-    public void terminate() throws EZMQXException {
+    public synchronized void terminate() throws EZMQXException {
         if (mTerminated.get()) {
             throw new EZMQXException("Subscriber already terminated", EZMQXErrorCode.Terminated);
         }

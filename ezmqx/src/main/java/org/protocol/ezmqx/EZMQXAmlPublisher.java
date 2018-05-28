@@ -108,9 +108,7 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
             terminate();
             throw new EZMQXException("Publisher terminated", EZMQXErrorCode.Terminated);
         }
-        if (null == mRepresentation) {
-            mRepresentation = mContext.getAmlRep(mTopic.getDatamodel());
-        }
+
         byte[] byteAML;
         try {
             byteAML = mRepresentation.DataToByte(payload);

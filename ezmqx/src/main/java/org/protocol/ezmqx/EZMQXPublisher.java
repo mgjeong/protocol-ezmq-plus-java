@@ -221,7 +221,7 @@ public class EZMQXPublisher {
      * Terminate EZMQX publisher.
      *
      */
-    public void terminate() throws EZMQXException {
+    public synchronized void terminate() throws EZMQXException {
         if (mTerminated.get()) {
             throw new EZMQXException("Publisher already terminated", EZMQXErrorCode.Terminated);
         }

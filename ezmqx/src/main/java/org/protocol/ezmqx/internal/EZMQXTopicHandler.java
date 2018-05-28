@@ -74,7 +74,7 @@ public class EZMQXTopicHandler {
         return mInstance;
     }
 
-    public void initHandler() {
+    public synchronized void initHandler() {
         if (mInitialized.get()) {
             return;
         }
@@ -155,7 +155,7 @@ public class EZMQXTopicHandler {
         return mIsKeepAliveStarted.get();
     }
 
-    public void terminateHandler() {
+    public synchronized void terminateHandler() {
         if (!mInitialized.get()) {
             return;
         }
