@@ -190,6 +190,10 @@ public class EZMQXContext {
     }
 
     public Representation getAmlRep(String amlModelId) throws EZMQXException {
+        if(!(mAMLRepDic.containsKey(amlModelId))) {
+            throw new EZMQXException("AML rep dict does not contain: "+amlModelId,
+                    EZMQXErrorCode.InvalidAmlModel);
+        }
         Representation rep = mAMLRepDic.get(amlModelId);
         if (null == rep) {
             throw new EZMQXException("Could not find matching Aml Rep",

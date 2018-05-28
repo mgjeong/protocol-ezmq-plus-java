@@ -36,20 +36,18 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
 
     private EZMQXSubCallback mInternalCallback = new EZMQXSubCallback() {
         public void onMessage(String topic, EZMQMessage ezmqMessage) {
-            if (null == topic || topic.isEmpty()) {
+            if (null == topic || topic.isEmpty() || (!(mAMLRepDic.containsKey(topic)))) {
                 mSubCallback.onError(topic, EZMQXErrorCode.UnknownTopic);
                 return;
-            }
-            Representation representation = mAMLRepDic.get(topic);
-            AMLObject amlObject = null;
-            if (null == representation) {
-                mSubCallback.onError(topic, EZMQXErrorCode.UnKnownState);
             } else {
+                AMLObject amlObject = null;
+                Representation representation = mAMLRepDic.get(topic);
+                if(null == representation) {
+                    mSubCallback.onError(topic, EZMQXErrorCode.UnKnownState);
+                }
                 EZMQByteData byteData = (EZMQByteData) ezmqMessage;
                 try {
                     amlObject = representation.ByteToData(byteData.getByteData());
-                    String amlString = representation.DataToAml(amlObject);
-                    amlObject = representation.AmlToData(amlString);
                     mSubCallback.onMessage(topic, amlObject);
                 } catch (AMLException e) {
                     mSubCallback.onError(topic, EZMQXErrorCode.BrokenPayload);
