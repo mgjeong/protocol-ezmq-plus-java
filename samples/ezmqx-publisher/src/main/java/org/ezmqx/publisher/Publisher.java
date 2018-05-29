@@ -165,6 +165,14 @@ public class Publisher {
                 System.out.println("AML object creation failed");
             }
 
+            // This delay is added to prevent JeroMQ first packet drop during
+            // initial connection of publisher and subscriber.
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             if (isStandAlone) {
                 publishData(amlObject, 10);
             } else {
