@@ -38,8 +38,6 @@ public class EZMQXConfig {
     private EZMQXContext mContext;
     private AtomicBoolean mInitialized;
 
-    private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXConfig.class);
-
     // setting log level as per application.properties
     static {
         InputStream stream = null;
@@ -63,6 +61,8 @@ public class EZMQXConfig {
             }
         }
     }
+
+    private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXConfig.class);
 
     private EZMQXConfig() throws EZMQXException {
         mInitialized = new AtomicBoolean(false);
