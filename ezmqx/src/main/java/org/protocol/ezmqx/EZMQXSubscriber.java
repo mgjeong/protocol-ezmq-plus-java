@@ -50,7 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class EZMQXSubscriber {
     protected EZMQXContext mContext;
-    protected List<EZMQSubscriber> mSubscribers;
+    protected EZMQSubscriber mSubscriber;
     protected AtomicBoolean mTerminated;
     protected List<EZMQXTopic> mStoredTopics;
     protected Map<String, Representation> mAMLRepDic;
@@ -62,7 +62,6 @@ public class EZMQXSubscriber {
     protected EZMQXSubscriber() throws EZMQXException {
         mTerminated = new AtomicBoolean(false);
         mContext = EZMQXContext.getInstance();
-        mSubscribers = new ArrayList<EZMQSubscriber>();
         mStoredTopics = new ArrayList<EZMQXTopic>();
         mAMLRepDic = new HashMap<String, Representation>();
     }
@@ -112,14 +111,13 @@ public class EZMQXSubscriber {
         }
         for (EZMQXTopic topic : topics) {
             mAMLRepDic.put(topic.getName(), mContext.getAmlRep(topic.getDatamodel()));
-            getSession(topic);
+            subscribe(topic);
             mStoredTopics.add(topic);
         }
     }
 
-    protected void getSession(EZMQXTopic topic) throws EZMQXException {
-        EZMQXEndPoint endPoint = topic.getEndPoint();
-        EZMQSubscriber subscriber =
+    private void createSubscriber(EZMQXEndPoint endPoint) throws EZMQXException {
+        mSubscriber =
                 new EZMQSubscriber(endPoint.getAddr(), endPoint.getPort(), new EZMQSubCallback() {
                     public void onMessageCB(String topic, EZMQMessage ezmqMessage) {
                         if (EZMQContentType.EZMQ_CONTENT_TYPE_BYTEDATA == ezmqMessage
@@ -132,15 +130,25 @@ public class EZMQXSubscriber {
                     public void onMessageCB(EZMQMessage ezmqMessage) {}
                 });
 
-        if (EZMQErrorCode.EZMQ_OK != subscriber.start()) {
+        if (EZMQErrorCode.EZMQ_OK != mSubscriber.start()) {
             throw new EZMQXException("Could not connect endpoint: " + endPoint.toString(),
                     EZMQXErrorCode.SessionUnavailable);
         }
-        if (EZMQErrorCode.EZMQ_OK != subscriber.subscribe(topic.getName())) {
+    }
+
+    protected void subscribe(EZMQXTopic topic) throws EZMQXException {
+        EZMQXEndPoint endPoint = topic.getEndPoint();
+        if (null == mSubscriber) {
+            createSubscriber(endPoint);
+        }
+        EZMQErrorCode errorCode =
+                mSubscriber.subscribe(endPoint.getAddr(), endPoint.getPort(), topic.getName());
+
+        if (EZMQErrorCode.EZMQ_OK != errorCode) {
             throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
                     EZMQXErrorCode.SessionUnavailable);
         }
-        mSubscribers.add(subscriber);
+        logger.debug("Subscribed for topic: " + topic.getName());
     }
 
     private List<EZMQXTopic> parseTNSResponse(Response response) throws EZMQXException {
@@ -211,10 +219,9 @@ public class EZMQXSubscriber {
         if (mTerminated.get()) {
             throw new EZMQXException("Subscriber already terminated", EZMQXErrorCode.Terminated);
         }
-        for (EZMQSubscriber subscriber : mSubscribers) {
-            subscriber.stop();
+        if (null != mSubscriber) {
+            mSubscriber.stop();
         }
-        mSubscribers.clear();
         mTerminated.set(true);
     }
 
