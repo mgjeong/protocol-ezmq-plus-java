@@ -64,7 +64,7 @@ public class EZMQXConfig {
 
     private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXConfig.class);
 
-    private EZMQXConfig() throws EZMQXException {
+    private EZMQXConfig() {
         mInitialized = new AtomicBoolean(false);
         mContext = EZMQXContext.getInstance();
     }
@@ -74,7 +74,7 @@ public class EZMQXConfig {
      *
      * @return EZMQXConfig instance.
      */
-    public static synchronized EZMQXConfig getInstance() throws EZMQXException {
+    public static synchronized EZMQXConfig getInstance() {
         if (null == mInstance) {
             mInstance = new EZMQXConfig();
         }
@@ -108,7 +108,8 @@ public class EZMQXConfig {
      * @param tnsAddr TNS address [IP:Port], if useTns is false this value
      *        will be ignored.
      */
-    public synchronized void startStandAloneMode(boolean useTns, String tnsAddr) throws EZMQXException {
+    public synchronized void startStandAloneMode(boolean useTns, String tnsAddr)
+            throws EZMQXException {
         if (mInitialized.get()) {
             throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
         }

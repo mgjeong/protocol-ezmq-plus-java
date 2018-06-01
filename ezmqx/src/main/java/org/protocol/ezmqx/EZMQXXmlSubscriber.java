@@ -41,7 +41,7 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
             } else {
                 AMLObject amlObject = null;
                 Representation representation = mAMLRepDic.get(topic);
-                if(null == representation) {
+                if (null == representation) {
                     mSubCallback.onError(topic, EZMQXErrorCode.UnKnownState);
                 }
                 EZMQByteData byteData = (EZMQByteData) ezmqMessage;
@@ -82,7 +82,6 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
             throws EZMQXException {
         super();
         setSubCallback(mInternalCallback);
-        initialize(topics);
         mSubCallback = subCallback;
     }
 
@@ -90,7 +89,6 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
             EZMQXXmlSubCallback subCallback) throws EZMQXException {
         super();
         setSubCallback(mInternalCallback);
-        initialize(topic, isHierarchical);
         mSubCallback = subCallback;
     }
 
@@ -108,6 +106,7 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
     public static EZMQXXmlSubscriber getSubscriber(String topic, boolean isHierarchical,
             EZMQXXmlSubCallback subCallback) throws EZMQXException {
         EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topic, isHierarchical, subCallback);
+        subscriber.initialize(topic, isHierarchical);
         return subscriber;
     }
 
@@ -126,6 +125,7 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
         List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
         topics.add(topic);
         EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
+        subscriber.initialize(topics);
         return subscriber;
     }
 
@@ -142,6 +142,7 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
     public static EZMQXXmlSubscriber getSubscriber(List<EZMQXTopic> topics,
             EZMQXXmlSubCallback subCallback) throws EZMQXException {
         EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
+        subscriber.initialize(topics);
         return subscriber;
     }
 }

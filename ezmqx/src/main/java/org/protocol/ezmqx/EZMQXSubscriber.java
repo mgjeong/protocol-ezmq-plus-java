@@ -59,7 +59,7 @@ public class EZMQXSubscriber {
     private final static EdgeXLogger logger =
             EdgeXLoggerFactory.getEdgeXLogger(EZMQXSubscriber.class);
 
-    protected EZMQXSubscriber() throws EZMQXException {
+    protected EZMQXSubscriber() {
         mTerminated = new AtomicBoolean(false);
         mContext = EZMQXContext.getInstance();
         mStoredTopics = new ArrayList<EZMQXTopic>();

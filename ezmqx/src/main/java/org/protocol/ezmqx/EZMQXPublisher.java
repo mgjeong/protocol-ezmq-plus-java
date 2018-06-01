@@ -56,8 +56,19 @@ public class EZMQXPublisher {
     private final static EdgeXLogger logger =
             EdgeXLoggerFactory.getEdgeXLogger(EZMQXPublisher.class);
 
-    protected EZMQXPublisher(int optionalPort) throws EZMQXException {
+    protected EZMQXPublisher() {
         mContext = EZMQXContext.getInstance();
+    }
+
+    // finalize method to be called by Java Garbage collector
+    // before destroying
+    // this object.
+    @Override
+    protected void finalize() throws EZMQXException {
+        terminate();
+    }
+
+    protected void initialize(int optionalPort) throws EZMQXException {
         if (!mContext.isInitialized()) {
             throw new EZMQXException("Could not create publisher context not initialized",
                     EZMQXErrorCode.NotInitialized);
@@ -92,14 +103,6 @@ public class EZMQXPublisher {
             logger.debug("Initialized topic handler");
         }
         mTerminated = new AtomicBoolean(false);
-    }
-
-    // finalize method to be called by Java Garbage collector
-    // before destroying
-    // this object.
-    @Override
-    protected void finalize() throws EZMQXException {
-        terminate();
     }
 
     private boolean parseTopicResponse(Response response) throws EZMQXException {

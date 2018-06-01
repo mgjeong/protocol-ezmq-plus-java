@@ -38,9 +38,40 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
     private final static EdgeXLogger logger =
             EdgeXLoggerFactory.getEdgeXLogger(EZMQXAmlPublisher.class);
 
-    private EZMQXAmlPublisher(String topic, EZMQXAmlModelInfo modelInfo, String modelId,
+    private EZMQXAmlPublisher() {
+        super();
+    }
+
+    // finalize method to be called by Java Garbage collector
+    // before destroying
+    // this object.
+    @Override
+    protected void finalize() {
+
+    }
+
+    /**
+     * Get EZMQX publisher instance.
+     *
+     * @param topic Topic on which publisher will publish.
+     * @param modelInfo Enum value for AML model info
+     *        {@link EZMQXAmlModelInfo}.
+     * @param modelId AML model ID or AML file path.
+     * @param optionalPort Port to be used for publishing data. It will be
+     *        used only when EZMQX configured in standalone mode.
+     *
+     * @return AML Publisher {@link EZMQXAmlPublisher}
+     */
+    public static EZMQXAmlPublisher getPublisher(String topic, EZMQXAmlModelInfo modelInfo,
+            String modelId, int optionalPort) throws EZMQXException {
+        EZMQXAmlPublisher publisher = new EZMQXAmlPublisher();
+        publisher.initialize(optionalPort);
+        publisher.registerTopic(topic, modelInfo, modelId, optionalPort);
+        return publisher;
+    }
+
+    private void registerTopic(String topic, EZMQXAmlModelInfo modelInfo, String modelId,
             int optionalPort) throws EZMQXException {
-        super(optionalPort);
         boolean result = EZMQXUtils.validateTopic(topic);
         if (false == result) {
             mPublisher.stop();
@@ -69,33 +100,6 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
             throw new EZMQXException(e.getMsg(), e.getCode());
         }
         registerTopic(ezmqTopic);
-    }
-
-    // finalize method to be called by Java Garbage collector
-    // before destroying
-    // this object.
-    @Override
-    protected void finalize() {
-
-    }
-
-    /**
-     * Get EZMQX publisher instance.
-     *
-     * @param topic Topic on which publisher will publish.
-     * @param modelInfo Enum value for AML model info
-     *        {@link EZMQXAmlModelInfo}.
-     * @param modelId AML model ID or AML file path.
-     * @param optionalPort Port to be used for publishing data. It will be
-     *        used only when EZMQX configured in standalone mode.
-     *
-     * @return AML Publisher {@link EZMQXAmlPublisher}
-     */
-    public static EZMQXAmlPublisher getPublisher(String topic, EZMQXAmlModelInfo modelInfo,
-            String modelId, int optionalPort) throws EZMQXException {
-        EZMQXAmlPublisher publisher =
-                new EZMQXAmlPublisher(topic, modelInfo, modelId, optionalPort);
-        return publisher;
     }
 
     /**

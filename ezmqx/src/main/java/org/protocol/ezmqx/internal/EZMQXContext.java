@@ -65,7 +65,7 @@ public class EZMQXContext {
 
     private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXContext.class);
 
-    private EZMQXContext() throws EZMQXException {
+    private EZMQXContext() {
         mAMLRepDic = new ConcurrentHashMap<String, Representation>();
         mUsedPorts = new HashMap<Integer, Boolean>();
         mPorts = new HashMap<Integer, Integer>();
@@ -77,7 +77,7 @@ public class EZMQXContext {
         mTnsEnabled = false;
     }
 
-    public static synchronized EZMQXContext getInstance() throws EZMQXException {
+    public static synchronized EZMQXContext getInstance() {
         if (null == mInstance) {
             mInstance = new EZMQXContext();
         }
@@ -191,8 +191,8 @@ public class EZMQXContext {
     }
 
     public Representation getAmlRep(String amlModelId) throws EZMQXException {
-        if(!(mAMLRepDic.containsKey(amlModelId))) {
-            throw new EZMQXException("AML rep dict does not contain: "+amlModelId,
+        if (!(mAMLRepDic.containsKey(amlModelId))) {
+            throw new EZMQXException("AML rep dict does not contain: " + amlModelId,
                     EZMQXErrorCode.InvalidAmlModel);
         }
         Representation rep = mAMLRepDic.get(amlModelId);

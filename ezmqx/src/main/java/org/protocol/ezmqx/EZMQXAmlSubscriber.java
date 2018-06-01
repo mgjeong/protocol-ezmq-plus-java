@@ -83,7 +83,6 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
         super();
         mSubCallback = subCallback;
         setSubCallback(mInternalCallback);
-        initialize(topics);
     }
 
     protected EZMQXAmlSubscriber(String topic, boolean isHierarchical,
@@ -91,7 +90,6 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
         super();
         mSubCallback = subCallback;
         setSubCallback(mInternalCallback);
-        initialize(topic, isHierarchical);
     }
 
     /**
@@ -108,6 +106,7 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
     public static EZMQXAmlSubscriber getSubscriber(String topic, boolean isHierarchical,
             EZMQXAmlSubCallback subCallback) throws EZMQXException {
         EZMQXAmlSubscriber subscriber = new EZMQXAmlSubscriber(topic, isHierarchical, subCallback);
+        subscriber.initialize(topic, isHierarchical);
         return subscriber;
     }
 
@@ -126,6 +125,7 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
         List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
         topics.add(topic);
         EZMQXAmlSubscriber subscriber = new EZMQXAmlSubscriber(topics, subCallback);
+        subscriber.initialize(topics);
         return subscriber;
     }
 
@@ -142,6 +142,7 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
     public static EZMQXAmlSubscriber getSubscriber(List<EZMQXTopic> topics,
             EZMQXAmlSubCallback subCallback) throws EZMQXException {
         EZMQXAmlSubscriber subscriber = new EZMQXAmlSubscriber(topics, subCallback);
+        subscriber.initialize(topics);
         return subscriber;
     }
 }
