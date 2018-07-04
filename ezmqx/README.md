@@ -16,7 +16,11 @@
 (b) If you are building for the first time, set <i>with_dependencies</i> option true. (e.g. $./build.sh **--with_dependencies=true**).</br>
 (c) If you are not having the protobuf installed, set <i>install_prerequisites</i> option true. (e.g. $./build.sh **--install_prerequisites=true**)</br>
 (d) Before running the **unittests.sh**, build ezmq-java library. unittests.sh can be used for x86_64/armhf architecture.</br>
-(e) Script needs sudo permission for installing the libraries. In future it will be removed.
+(e) Script needs sudo permission for installing the libraries. In future it will be removed.</br>
+(f) To build in **debug** mode:
+   - Goto: `~/protocol-ezmq-plus-java/ezmqx/src/main/resources`
+   - Modify logging level in **application.properties**: 
+        ` ezmqx.logging.level=DEBUG`
 
 ## ezmq-plus Binary info ##
    - ezmq-plus library
