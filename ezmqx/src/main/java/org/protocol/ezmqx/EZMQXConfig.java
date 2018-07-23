@@ -22,11 +22,13 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.edgexfoundry.ezmq.EZMQAPI;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
-import org.protocol.ezmqx.internal.EZMQXContext;
+import org.protocol.ezmqx.internal.Context;
+import org.protocol.ezmqx.internal.RestClientFactory;
+import org.protocol.ezmqx.internal.RestClientFactoryInterface;
+import org.protocol.ezmqx.internal.RestFactory;
 
 /**
  * This class represents EZMQX configure. It provides APIs for
@@ -34,72 +36,74 @@ import org.protocol.ezmqx.internal.EZMQXContext;
  * before using any EZMQX feature.
  */
 public class EZMQXConfig {
-    private static EZMQXConfig mInstance;
-    private EZMQXContext mContext;
-    private AtomicBoolean mInitialized;
+  private static EZMQXConfig mInstance;
+  private Context mContext;
+  private AtomicBoolean mInitialized;
 
-    // setting log level as per application.properties
-    static {
-        InputStream stream = null;
+  // setting log level as per application.properties
+  static {
+    InputStream stream = null;
+    try {
+      Properties props = new Properties();
+      stream = EZMQAPI.class.getResourceAsStream("/application.properties");
+      props.load(stream);
+      String mode = props.getProperty("ezmqx.logging.level");
+      if ((null != mode) && (mode.equalsIgnoreCase("DEBUG"))) {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (null != stream) {
         try {
-            Properties props = new Properties();
-            stream = EZMQAPI.class.getResourceAsStream("/application.properties");
-            props.load(stream);
-            String mode = props.getProperty("ezmqx.logging.level");
-            if ((null != mode) && (mode.equalsIgnoreCase("DEBUG"))) {
-                System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (null != stream) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+          stream.close();
+        } catch (IOException e) {
+          e.printStackTrace();
         }
+      }
     }
+  }
 
-    private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXConfig.class);
+  private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXConfig.class);
 
-    private EZMQXConfig() {
-        mInitialized = new AtomicBoolean(false);
-        mContext = EZMQXContext.getInstance();
+  private EZMQXConfig() {
+    mInitialized = new AtomicBoolean(false);
+    mContext = Context.getInstance();
+  }
+
+  /**
+   * Get instance of EZMQXConfig.
+   *
+   * @return EZMQXConfig instance.
+   */
+  public static synchronized EZMQXConfig getInstance() {
+    if (null == mInstance) {
+      mInstance = new EZMQXConfig();
+      RestClientFactoryInterface factory = new RestClientFactory();
+      RestFactory.getInstance().setFactory(factory);
     }
+    return mInstance;
+  }
 
-    /**
-     * Get instance of EZMQXConfig.
-     *
-     * @return EZMQXConfig instance.
-     */
-    public static synchronized EZMQXConfig getInstance() {
-        if (null == mInstance) {
-            mInstance = new EZMQXConfig();
-        }
-        return mInstance;
-    }
+  // finalize method to be called by Java Garbage collector
+  // before destroying
+  // this object.
+  @Override
+  protected void finalize() {
+    mContext.terminate();
+  }
 
-    // finalize method to be called by Java Garbage collector
-    // before destroying
-    // this object.
-    @Override
-    protected void finalize() {
-        mContext.terminate();
+  /**
+   * Start/Configure EZMQX in docker mode.
+   */
+  public synchronized void startDockerMode() throws EZMQXException {
+    if (mInitialized.get()) {
+      throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
     }
-
-    /**
-     * Start/Configure EZMQX in docker mode.
-     */
-    public synchronized void startDockerMode() throws EZMQXException {
-        if (mInitialized.get()) {
-            throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
-        }
-        mContext.initializeDockerMode();
-        mInitialized.set(true);
-        logger.debug("Started docker mode");
-    }
+    mContext.initializeDockerMode();
+    mInitialized.set(true);
+    logger.debug("Started docker mode");
+  }
 
     /**
      * Start/Configure EZMQX in stand-alone mode.
@@ -108,39 +112,39 @@ public class EZMQXConfig {
      * @param tnsAddr TNS address [IP:Port], if useTns is false this value
      *        will be ignored.
      */
-    public synchronized void startStandAloneMode(boolean useTns, String tnsAddr)
-            throws EZMQXException {
-        if (mInitialized.get()) {
-            throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
-        }
-        mContext.initializeStandAloneMode(useTns, tnsAddr);
-        mInitialized.set(true);
-        logger.debug("Started Standalone mode");
+  public synchronized void startStandAloneMode(boolean useTns, String tnsAddr)
+      throws EZMQXException {
+    if (mInitialized.get()) {
+      throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
     }
+    mContext.initializeStandAloneMode(useTns, tnsAddr);
+    mInitialized.set(true);
+    logger.debug("Started Standalone mode");
+  }
 
-    /**
-     * Add aml model file for publish or subscribe AML data.
-     *
-     * @param amlFilePath List of AML files.
-     *
-     * @return List of AML Ids corresponding to given AML files.
-     */
-    public List<String> addAmlModel(List<String> amlFilePath) throws EZMQXException {
-        if (!mInitialized.get()) {
-            throw new EZMQXException("Not initialized", EZMQXErrorCode.NotInitialized);
-        }
-        return mContext.addAmlRep(amlFilePath);
+  /**
+   * Add aml model file for publish or subscribe AML data.
+   *
+   * @param amlFilePath List of AML files.
+   *
+   * @return List of AML Ids corresponding to given AML files.
+   */
+  public List<String> addAmlModel(List<String> amlFilePath) throws EZMQXException {
+    if (!mInitialized.get()) {
+      throw new EZMQXException("Not initialized", EZMQXErrorCode.NotInitialized);
     }
+    return mContext.addAmlRep(amlFilePath);
+  }
 
-    /**
-     * Reset/Terminate EZMQX stack.
-     */
-    public synchronized void reset() throws EZMQXException {
-        if (!mInitialized.get()) {
-            throw new EZMQXException("Not initialized", EZMQXErrorCode.NotInitialized);
-        }
-        mContext.terminate();
-        mInitialized.set(false);
-        logger.debug("EZMQX reset done");
+  /**
+   * Reset/Terminate EZMQX stack.
+   */
+  public synchronized void reset() throws EZMQXException {
+    if (!mInitialized.get()) {
+      throw new EZMQXException("Not initialized", EZMQXErrorCode.NotInitialized);
     }
+    mContext.terminate();
+    mInitialized.set(false);
+    logger.debug("EZMQX reset done");
+  }
 }

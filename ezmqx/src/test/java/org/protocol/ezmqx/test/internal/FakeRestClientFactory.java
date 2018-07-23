@@ -15,43 +15,15 @@
  *
  *******************************************************************************/
 
-package org.protocol.ezmqx;
+package org.protocol.ezmqx.test.internal;
 
-/**
- * This class represents EZMQX exception.
- */
-@SuppressWarnings("serial")
-public class EZMQXException extends Exception {
-  private String mMsg;
-  private EZMQXErrorCode mCode;
+import org.protocol.ezmqx.internal.RestClientFactoryInterface;
+import org.protocol.ezmqx.internal.RestClientInterface;
 
-    /**
-     * Constructor for EZMQX exception.
-     *
-     * @param msg String message to be set in exception.
-     * @param code Error code to be set in exception.
-     *        {@link EZMQXErrorCode}
-     */
-  public EZMQXException(String msg, EZMQXErrorCode code) {
-    mMsg = msg;
-    mCode = code;
-  }
-
-  /**
-   * Get exception message.
-   *
-   * @return String message.
-   */
-  public String getMsg() {
-    return mMsg;
-  }
-
-  /**
-   * Get error code.
-   *
-   * @return EZMQXErrorCode
-   */
-  public EZMQXErrorCode getCode() {
-    return mCode;
+public class FakeRestClientFactory implements RestClientFactoryInterface {
+  @Override
+  public RestClientInterface getRestClient(int timeOut) {
+    FakeRestClient client = new FakeRestClient();
+    return client;
   }
 }

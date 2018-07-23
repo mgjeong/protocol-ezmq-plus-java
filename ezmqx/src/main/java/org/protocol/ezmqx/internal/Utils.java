@@ -19,26 +19,26 @@ package org.protocol.ezmqx.internal;
 
 import org.protocol.ezmqx.EZMQXException;
 
-public class EZMQXUtils {
-    public static final String LOCAL_HOST = "localhost";
-    public static final int LOCAL_PORT_START = 4000;
-    public static final int LOCAL_PORT_MAX = 100;
-    private final static String SLASH = "/";
-    private final static String DOUBLE_SLASH = "//";
-    private final static String TOPIC_PATTERN = "(/)[a-zA-Z0-9-_./]+";
-    // private final static String TOPIC_WILD_CARD = "*";
-    // private final static String TOPIC_WILD_PATTERN = "/*/";
+public class Utils {
+  public static final String LOCAL_HOST = "localhost";
+  public static final int LOCAL_PORT_START = 4000;
+  public static final int LOCAL_PORT_MAX = 100;
+  private final static String SLASH = "/";
+  private final static String DOUBLE_SLASH = "//";
+  private final static String TOPIC_PATTERN = "(/)[a-zA-Z0-9-_./]+";
+  // private final static String TOPIC_WILD_CARD = "*";
+  // private final static String TOPIC_WILD_PATTERN = "/*/";
 
-    public static boolean validateTopic(String topic) throws EZMQXException {
-        if (null == topic || topic.isEmpty()) {
-            return false;
-        }
-        if (topic.contains(DOUBLE_SLASH) || topic.endsWith(SLASH)) {
-            return false;
-        }
-        if (!(topic.matches(TOPIC_PATTERN))) {
-            return false;
-        }
-        return true;
+  public static boolean validateTopic(String topic) throws EZMQXException {
+    if (null == topic || topic.isEmpty()) {
+      return false;
     }
+    if (topic.contains(DOUBLE_SLASH) || topic.endsWith(SLASH)) {
+      return false;
+    }
+    if (!(topic.matches(TOPIC_PATTERN))) {
+      return false;
+    }
+    return true;
+  }
 }

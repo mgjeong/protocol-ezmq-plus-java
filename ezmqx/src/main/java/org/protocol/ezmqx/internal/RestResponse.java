@@ -15,43 +15,22 @@
  *
  *******************************************************************************/
 
-package org.protocol.ezmqx;
+package org.protocol.ezmqx.internal;
 
-/**
- * This class represents EZMQX exception.
- */
-@SuppressWarnings("serial")
-public class EZMQXException extends Exception {
-  private String mMsg;
-  private EZMQXErrorCode mCode;
+public class RestResponse {
+  private int mStatusCode;
+  private String mResponse;
 
-    /**
-     * Constructor for EZMQX exception.
-     *
-     * @param msg String message to be set in exception.
-     * @param code Error code to be set in exception.
-     *        {@link EZMQXErrorCode}
-     */
-  public EZMQXException(String msg, EZMQXErrorCode code) {
-    mMsg = msg;
-    mCode = code;
+  public RestResponse(int statusCode, String response) {
+    mStatusCode = statusCode;
+    mResponse = response;
   }
 
-  /**
-   * Get exception message.
-   *
-   * @return String message.
-   */
-  public String getMsg() {
-    return mMsg;
+  public int getStatusCode() {
+    return mStatusCode;
   }
 
-  /**
-   * Get error code.
-   *
-   * @return EZMQXErrorCode
-   */
-  public EZMQXErrorCode getCode() {
-    return mCode;
+  public String getResponse() {
+    return mResponse;
   }
 }

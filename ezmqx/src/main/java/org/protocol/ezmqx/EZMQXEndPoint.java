@@ -21,9 +21,9 @@ package org.protocol.ezmqx;
  * This class represents EZMQX EndPoint.
  */
 public class EZMQXEndPoint {
-    private String mAddress;
-    private int mPort;
-    private final String COLLON = ":";
+  private String mAddress;
+  private int mPort;
+  private final String COLLON = ":";
 
     /**
      * Constructor for EZMQX EndPoint.
@@ -33,55 +33,55 @@ public class EZMQXEndPoint {
      *        Note: If address contains only IP address port will be
      *        assigned with -1.
      */
-    public EZMQXEndPoint(String address) {
-        if (null == address) {
-            return;
-        }
-        if (!address.contains(COLLON)) {
-            mAddress = address;
-            mPort = -1;
-            return;
-        }
-        String[] ipPort = address.split(COLLON);
-        mAddress = ipPort[0];
-        mPort = Integer.parseInt(ipPort[1]);
+  public EZMQXEndPoint(String address) {
+    if (null == address) {
+      return;
     }
+    if (!address.contains(COLLON)) {
+      mAddress = address;
+      mPort = -1;
+      return;
+    }
+    String[] ipPort = address.split(COLLON);
+    mAddress = ipPort[0];
+    mPort = Integer.parseInt(ipPort[1]);
+  }
 
-    /**
-     * Constructor for EZMQX EndPoint.
-     *
-     * @param address address[ip] to set in end point.
-     * @param port port to set in end point.
-     */
-    public EZMQXEndPoint(String address, int port) {
-        mAddress = address;
-        mPort = port;
-    }
+  /**
+   * Constructor for EZMQX EndPoint.
+   *
+   * @param address address[ip] to set in end point.
+   * @param port port to set in end point.
+   */
+  public EZMQXEndPoint(String address, int port) {
+    mAddress = address;
+    mPort = port;
+  }
 
-    /**
-     * Get address of end point.
-     *
-     * @return Address as string.
-     */
-    public String getAddr() {
-        return mAddress;
-    }
+  /**
+   * Get address of end point.
+   *
+   * @return Address as string.
+   */
+  public String getAddr() {
+    return mAddress;
+  }
 
-    /**
-     * Get port of end point.
-     *
-     * @return Port as integer.
-     */
-    public int getPort() {
-        return mPort;
-    }
+  /**
+   * Get port of end point.
+   *
+   * @return Port as integer.
+   */
+  public int getPort() {
+    return mPort;
+  }
 
-    /**
-     * Get endpoint as string.
-     *
-     * @return Endpoint as String.
-     */
-    public String toString() {
-        return mPort == -1 ? mAddress : mAddress + COLLON + mPort;
-    }
+  /**
+   * Get endpoint as string.
+   *
+   * @return Endpoint as String.
+   */
+  public String toString() {
+    return mPort == -1 ? mAddress : mAddress + COLLON + mPort;
+  }
 }

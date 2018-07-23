@@ -15,43 +15,17 @@
  *
  *******************************************************************************/
 
-package org.protocol.ezmqx;
+package org.protocol.ezmqx.internal;
 
-/**
- * This class represents EZMQX exception.
- */
-@SuppressWarnings("serial")
-public class EZMQXException extends Exception {
-  private String mMsg;
-  private EZMQXErrorCode mCode;
+public interface RestClientInterface {
 
-    /**
-     * Constructor for EZMQX exception.
-     *
-     * @param msg String message to be set in exception.
-     * @param code Error code to be set in exception.
-     *        {@link EZMQXErrorCode}
-     */
-  public EZMQXException(String msg, EZMQXErrorCode code) {
-    mMsg = msg;
-    mCode = code;
-  }
+  RestResponse get(String url) throws Exception;
 
-  /**
-   * Get exception message.
-   *
-   * @return String message.
-   */
-  public String getMsg() {
-    return mMsg;
-  }
+  RestResponse get(String url, String query) throws Exception;
 
-  /**
-   * Get error code.
-   *
-   * @return EZMQXErrorCode
-   */
-  public EZMQXErrorCode getCode() {
-    return mCode;
-  }
+  RestResponse put(String url, String payload) throws Exception;
+
+  RestResponse post(String url, String payload) throws Exception;
+
+  RestResponse delete(String url, String query) throws Exception;
 }

@@ -29,66 +29,110 @@ import org.protocol.ezmqx.EZMQXAmlModelInfo;
 import org.protocol.ezmqx.EZMQXAmlPublisher;
 import org.protocol.ezmqx.EZMQXConfig;
 import org.protocol.ezmqx.EZMQXException;
+import org.protocol.ezmqx.internal.RestClientFactoryInterface;
+import org.protocol.ezmqx.internal.RestFactory;
+import org.protocol.ezmqx.test.internal.FakeRestClientFactory;
 
 public class EZMQXAmlPublisherTest {
-    private EZMQXConfig mConfig;
+  private EZMQXConfig mConfig;
 
-    @Before
-    public void setup() throws EZMQXException {
-        mConfig = EZMQXConfig.getInstance();
-        mConfig.startStandAloneMode(false, "");
-        assertNotNull(mConfig);
+  @Before
+  public void setup() throws EZMQXException {
+    mConfig = EZMQXConfig.getInstance();
+    RestClientFactoryInterface restFactory = new FakeRestClientFactory();
+    RestFactory.getInstance().setFactory(restFactory);
+    mConfig.startStandAloneMode(false, "");
+    assertNotNull(mConfig);
+  }
+
+  @After
+  public void after() throws Exception {
+    try {
+      mConfig.reset();
+    } catch (EZMQXException e) {
+
+    }
+  }
+
+  @Test
+  public void getPublisherTest() throws EZMQXException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    List<String> IdList = mConfig.addAmlModel(amlFilePath);
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_MODEL_ID, IdList.get(0), 5563);
+    assertNotNull(publisher);
+    publisher.terminate();
+  }
+
+  @Test
+  public void getPublisherTest1() throws EZMQXException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    publisher.terminate();
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getPublisherTest2() throws EZMQXException, AMLException {
+    mConfig.reset();
+    try {
+      mConfig.startDockerMode();
+    } catch (Exception e) {
     }
 
-    @After
-    public void after() throws Exception {
-        mConfig.reset();
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    publisher.terminate();
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getPublisherTest3() throws EZMQXException, AMLException {
+    mConfig.reset();
+    try {
+      mConfig.startStandAloneMode(true, "0.0.0.0");
+    } catch (Exception e) {
     }
 
-    @Test
-    public void getPublisherTest() throws EZMQXException {
-        List<String> amlFilePath = new ArrayList<String>();
-        amlFilePath.add(TestUtils.FILE_PATH);
-        List<String> IdList = mConfig.addAmlModel(amlFilePath);
-        EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
-                EZMQXAmlModelInfo.AML_MODEL_ID, IdList.get(0), 5563);
-        assertNotNull(publisher);
-        publisher.terminate();
-    }
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    publisher.terminate();
+  }
 
-    @Test
-    public void getPublisherTest1() throws EZMQXException {
-        EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
-                EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
-        assertNotNull(publisher);
-        publisher.terminate();
-    }
+  @Test(expected = EZMQXException.class)
+  public void getPublisherTest4() throws EZMQXException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.INVALID_TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+  }
 
-    @Test
-    public void publishTest() throws EZMQXException, AMLException {
-        EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
-                EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
-        assertNotNull(publisher);
-        publisher.publish(TestUtils.getAMLObject());
-        publisher.terminate();
-    }
+  @Test
+  public void publishTest() throws EZMQXException, AMLException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    publisher.publish(TestUtils.getAMLObject());
+    publisher.terminate();
+  }
 
-    @Test
-    public void getTopicTest() throws EZMQXException, AMLException {
-        EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
-                EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
-        assertNotNull(publisher);
-        assertEquals(publisher.getTopic().getName(), TestUtils.TOPIC);
-        publisher.terminate();
-    }
+  @Test
+  public void getTopicTest() throws EZMQXException, AMLException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    assertEquals(publisher.getTopic().getName(), TestUtils.TOPIC);
+    publisher.terminate();
+  }
 
-    @Test
-    public void terminateTest() throws EZMQXException, AMLException {
-        EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
-                EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
-        assertNotNull(publisher);
-        assertEquals(publisher.isTerminated(), false);
-        publisher.terminate();
-        assertEquals(publisher.isTerminated(), true);
-    }
+  @Test
+  public void terminateTest() throws EZMQXException, AMLException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    assertEquals(publisher.isTerminated(), false);
+    publisher.terminate();
+    assertEquals(publisher.isTerminated(), true);
+  }
 }

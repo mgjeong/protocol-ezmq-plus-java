@@ -22,11 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.ws.rs.core.Response;
-
 import org.datamodel.aml.Representation;
 import org.edgexfoundry.ezmq.EZMQContentType;
 import org.edgexfoundry.ezmq.EZMQErrorCode;
@@ -35,13 +31,11 @@ import org.edgexfoundry.ezmq.EZMQSubscriber;
 import org.edgexfoundry.ezmq.EZMQSubscriber.EZMQSubCallback;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.protocol.ezmqx.internal.EZMQXContext;
-import org.protocol.ezmqx.internal.EZMQXRestUtils;
-import org.protocol.ezmqx.internal.EZMQXUtils;
-
+import org.protocol.ezmqx.internal.Context;
+import org.protocol.ezmqx.internal.RestResponse;
+import org.protocol.ezmqx.internal.RestFactory;
+import org.protocol.ezmqx.internal.RestUtils;
+import org.protocol.ezmqx.internal.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -49,198 +43,190 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * This class is base class of EZMQX subscribers.
  */
 public class EZMQXSubscriber {
-    protected EZMQXContext mContext;
-    protected EZMQSubscriber mSubscriber;
-    protected AtomicBoolean mTerminated;
-    protected List<EZMQXTopic> mStoredTopics;
-    protected Map<String, Representation> mAMLRepDic;
-    private EZMQXSubCallback mCallback;
+  protected Context mContext;
+  protected EZMQSubscriber mSubscriber;
+  protected AtomicBoolean mTerminated;
+  protected List<EZMQXTopic> mStoredTopics;
+  protected Map<String, Representation> mAMLRepDic;
+  private EZMQXSubCallback mCallback;
 
-    private final static EdgeXLogger logger =
-            EdgeXLoggerFactory.getEdgeXLogger(EZMQXSubscriber.class);
+  private final static EdgeXLogger logger =
+      EdgeXLoggerFactory.getEdgeXLogger(EZMQXSubscriber.class);
 
-    protected EZMQXSubscriber() {
-        mTerminated = new AtomicBoolean(false);
-        mContext = EZMQXContext.getInstance();
-        mStoredTopics = new ArrayList<EZMQXTopic>();
-        mAMLRepDic = new HashMap<String, Representation>();
+  protected EZMQXSubscriber() {
+    mTerminated = new AtomicBoolean(false);
+    mContext = Context.getInstance();
+    mStoredTopics = new ArrayList<EZMQXTopic>();
+    mAMLRepDic = new HashMap<String, Representation>();
+  }
+
+  // finalize method to be called by Java Garbage collector
+  // before destroying
+  // this object.
+  @Override
+  protected void finalize() throws EZMQXException {
+    terminate();
+  }
+
+  protected interface EZMQXSubCallback {
+    public void onMessage(String topic, EZMQMessage data);
+  }
+
+  protected void setSubCallback(EZMQXSubCallback callback) {
+    mCallback = callback;
+  }
+
+  protected void initialize(String topic, boolean isHierarchical) throws EZMQXException {
+    if (!mContext.isInitialized()) {
+      throw new EZMQXException("Could not create Subscriber context not initialized",
+          EZMQXErrorCode.NotInitialized);
     }
-
-    // finalize method to be called by Java Garbage collector
-    // before destroying
-    // this object.
-    @Override
-    protected void finalize() throws EZMQXException {
-        terminate();
+    boolean result = Utils.validateTopic(topic);
+    if (false == result) {
+      throw new EZMQXException("Invalid topic", EZMQXErrorCode.InvalidTopic);
     }
-
-    protected interface EZMQXSubCallback {
-        public void onMessage(String topic, EZMQMessage data);
+    List<EZMQXTopic> verified = new ArrayList<EZMQXTopic>();
+    if (mContext.isTnsEnabled()) {
+      verified = verifyTopics(topic, isHierarchical);
+      if (verified.isEmpty()) {
+        throw new EZMQXException("Could not find matched topic", EZMQXErrorCode.NoTopicMatched);
+      }
+    } else {
+      throw new EZMQXException("TNS not available", EZMQXErrorCode.TnsNotAvailable);
     }
+    initialize(verified);
+  }
 
-    protected void setSubCallback(EZMQXSubCallback callback) {
-        mCallback = callback;
+  protected void initialize(List<EZMQXTopic> topics) throws EZMQXException {
+    if (!mContext.isInitialized()) {
+      throw new EZMQXException("Could not create Subscriber context not initialized",
+          EZMQXErrorCode.NotInitialized);
     }
+    for (EZMQXTopic topic : topics) {
+      mAMLRepDic.put(topic.getName(), mContext.getAmlRep(topic.getDatamodel()));
+      subscribe(topic);
+      mStoredTopics.add(topic);
+    }
+  }
 
-    protected void initialize(String topic, boolean isHierarchical) throws EZMQXException {
-        if (!mContext.isInitialized()) {
-            throw new EZMQXException("Could not create Subscriber context not initialized",
-                    EZMQXErrorCode.NotInitialized);
-        }
-        boolean result = EZMQXUtils.validateTopic(topic);
-        if (false == result) {
-            throw new EZMQXException("Invalid topic", EZMQXErrorCode.InvalidTopic);
-        }
-        List<EZMQXTopic> verified = new ArrayList<EZMQXTopic>();
-        if (mContext.isTnsEnabled()) {
-            verified = verifyTopics(topic, isHierarchical);
-            if (verified.isEmpty()) {
-                throw new EZMQXException("Could not find matched topic",
-                        EZMQXErrorCode.NoTopicMatched);
-            }
+  private void createSubscriber(EZMQXEndPoint endPoint) throws EZMQXException {
+    mSubscriber = new EZMQSubscriber(endPoint.getAddr(), endPoint.getPort(), new EZMQSubCallback() {
+      public void onMessageCB(String topic, EZMQMessage ezmqMessage) {
+        if (EZMQContentType.EZMQ_CONTENT_TYPE_BYTEDATA == ezmqMessage.getContentType()) {
+          mCallback.onMessage(topic, ezmqMessage);
         } else {
-            throw new EZMQXException("TNS not available", EZMQXErrorCode.TnsNotAvailable);
         }
-        initialize(verified);
+      }
+
+      public void onMessageCB(EZMQMessage ezmqMessage) {}
+    });
+
+    if (EZMQErrorCode.EZMQ_OK != mSubscriber.start()) {
+      throw new EZMQXException("Could not connect endpoint: " + endPoint.toString(),
+          EZMQXErrorCode.SessionUnavailable);
+    }
+  }
+
+  protected void subscribe(EZMQXTopic topic) throws EZMQXException {
+    EZMQXEndPoint endPoint = topic.getEndPoint();
+    if (null == mSubscriber) {
+      createSubscriber(endPoint);
+    }
+    EZMQErrorCode errorCode =
+        mSubscriber.subscribe(endPoint.getAddr(), endPoint.getPort(), topic.getName());
+
+    if (EZMQErrorCode.EZMQ_OK != errorCode) {
+      throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
+          EZMQXErrorCode.SessionUnavailable);
+    }
+    logger.debug("Subscribed for topic: " + topic.getName());
+  }
+
+  private List<EZMQXTopic> parseTNSResponse(RestResponse response) throws EZMQXException {
+    if (null == response) {
+      throw new EZMQXException("Could not get topic", EZMQXErrorCode.RestError);
+    }
+    logger.debug("[TNS get topic] Status code: " + response.getStatusCode());
+    if (response.getStatusCode() != RestUtils.HTTP_OK) {
+      throw new EZMQXException("Could not discover topic", EZMQXErrorCode.RestError);
     }
 
-    protected void initialize(List<EZMQXTopic> topics) throws EZMQXException {
-        if (!mContext.isInitialized()) {
-            throw new EZMQXException("Could not create Subscriber context not initialized",
-                    EZMQXErrorCode.NotInitialized);
-        }
-        for (EZMQXTopic topic : topics) {
-            mAMLRepDic.put(topic.getName(), mContext.getAmlRep(topic.getDatamodel()));
-            subscribe(topic);
-            mStoredTopics.add(topic);
-        }
+    String jsonString = response.getResponse();
+    logger.debug("[TNS get topic] Response: " + jsonString);
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode root = null;
+    try {
+      root = mapper.readTree(jsonString);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
-    private void createSubscriber(EZMQXEndPoint endPoint) throws EZMQXException {
-        mSubscriber =
-                new EZMQSubscriber(endPoint.getAddr(), endPoint.getPort(), new EZMQSubCallback() {
-                    public void onMessageCB(String topic, EZMQMessage ezmqMessage) {
-                        if (EZMQContentType.EZMQ_CONTENT_TYPE_BYTEDATA == ezmqMessage
-                                .getContentType()) {
-                            mCallback.onMessage(topic, ezmqMessage);
-                        } else {
-                        }
-                    }
-
-                    public void onMessageCB(EZMQMessage ezmqMessage) {}
-                });
-
-        if (EZMQErrorCode.EZMQ_OK != mSubscriber.start()) {
-            throw new EZMQXException("Could not connect endpoint: " + endPoint.toString(),
-                    EZMQXErrorCode.SessionUnavailable);
-        }
+    List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
+    JsonNode propertiesNode = root.path(RestUtils.PAYLOAD_TOPICS);
+    for (JsonNode node : propertiesNode) {
+      if (node.has(RestUtils.PAYLOAD_NAME) && node.has(RestUtils.PAYLOAD_DATAMODEL)
+          && node.has(RestUtils.PAYLOAD_ENDPOINT)) {
+        String name = node.path(RestUtils.PAYLOAD_NAME).asText();
+        String dataModel = node.path(RestUtils.PAYLOAD_DATAMODEL).asText();
+        String ep = node.path(RestUtils.PAYLOAD_ENDPOINT).asText();
+        EZMQXEndPoint endPoint = new EZMQXEndPoint(ep);
+        EZMQXTopic topic = new EZMQXTopic(name, dataModel, endPoint);
+        topics.add(topic);
+      }
     }
+    return topics;
+  }
 
-    protected void subscribe(EZMQXTopic topic) throws EZMQXException {
-        EZMQXEndPoint endPoint = topic.getEndPoint();
-        if (null == mSubscriber) {
-            createSubscriber(endPoint);
-        }
-        EZMQErrorCode errorCode =
-                mSubscriber.subscribe(endPoint.getAddr(), endPoint.getPort(), topic.getName());
+  protected List<EZMQXTopic> verifyTopics(String topic, boolean isHierarchical)
+      throws EZMQXException {
+    // Send post request to TNS server
+    String topicURL = RestUtils.HTTP_PREFIX + mContext.getTnsAddr() + RestUtils.COLON
+        + RestUtils.TNS_KNOWN_PORT + RestUtils.PREFIX + RestUtils.TOPIC;
+    String query = RestUtils.QUERY_NAME + topic + RestUtils.QUERY_HIERARCHICAL
+        + (isHierarchical == true ? RestUtils.QUERY_TRUE : RestUtils.QUERY_FALSE);
+    logger.debug("[TNS get topic] Rest URL: " + topicURL);
+    logger.debug("[TNS get topic] Query: " + query);
 
-        if (EZMQErrorCode.EZMQ_OK != errorCode) {
-            throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
-                    EZMQXErrorCode.SessionUnavailable);
-        }
-        logger.debug("Subscribed for topic: " + topic.getName());
+    RestFactory restClient = RestFactory.getInstance();
+    RestResponse response = null;
+    try {
+      response = restClient.get(topicURL, query);
+    } catch (Exception e) {
+      logger.debug("Caught exeption : " + e.getMessage());
     }
+    return parseTNSResponse(response);
+  }
 
-    private List<EZMQXTopic> parseTNSResponse(Response response) throws EZMQXException {
-        if (null == response) {
-            throw new EZMQXException("Could not get topic", EZMQXErrorCode.RestError);
-        }
-        logger.debug("[TNS get topic] Status code: " + response.getStatus());
-        if (response.getStatus() != EZMQXRestUtils.HTTP_OK) {
-            throw new EZMQXException("Could not discover topic", EZMQXErrorCode.RestError);
-        }
-
-        String jsonString = response.readEntity(String.class);
-        logger.debug("[TNS get topic] Response: " + jsonString);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = null;
-        try {
-            root = mapper.readTree(jsonString);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
-        JsonNode propertiesNode = root.path(EZMQXRestUtils.PAYLOAD_TOPICS);
-        for (JsonNode node : propertiesNode) {
-            if (node.has(EZMQXRestUtils.PAYLOAD_NAME) && node.has(EZMQXRestUtils.PAYLOAD_DATAMODEL)
-                    && node.has(EZMQXRestUtils.PAYLOAD_ENDPOINT)) {
-                String name = node.path(EZMQXRestUtils.PAYLOAD_NAME).asText();
-                String dataModel = node.path(EZMQXRestUtils.PAYLOAD_DATAMODEL).asText();
-                String ep = node.path(EZMQXRestUtils.PAYLOAD_ENDPOINT).asText();
-                EZMQXEndPoint endPoint = new EZMQXEndPoint(ep);
-                EZMQXTopic topic = new EZMQXTopic(name, dataModel, endPoint);
-                topics.add(topic);
-            }
-        }
-        return topics;
+  /**
+   * Terminate EZMQX subscriber.
+   *
+   */
+  public synchronized void terminate() throws EZMQXException {
+    if (mTerminated.get()) {
+      throw new EZMQXException("Subscriber already terminated", EZMQXErrorCode.Terminated);
     }
-
-    protected List<EZMQXTopic> verifyTopics(String topic, boolean isHierarchical)
-            throws EZMQXException {
-        // Send post request to TNS server
-        String topicURL = EZMQXRestUtils.HTTP_PREFIX + mContext.getTnsAddr() + EZMQXRestUtils.COLON
-                + EZMQXRestUtils.TNS_KNOWN_PORT + EZMQXRestUtils.PREFIX + EZMQXRestUtils.TOPIC;
-        String query = EZMQXRestUtils.QUERY_NAME + topic + EZMQXRestUtils.QUERY_HIERARCHICAL
-                + (isHierarchical == true ? EZMQXRestUtils.QUERY_TRUE : EZMQXRestUtils.QUERY_FALSE);
-        logger.debug("[TNS get topic] Rest URL: " + topicURL);
-        logger.debug("[TNS get topic] Query: " + query);
-
-        ResteasyClient mRestClient = new ResteasyClientBuilder()
-                .establishConnectionTimeout(EZMQXRestUtils.CONNECTION_TIMEOUT, TimeUnit.SECONDS)
-                .build();
-        ResteasyWebTarget target = (ResteasyWebTarget) mRestClient
-                .target(topicURL + EZMQXRestUtils.QUESTION_MARK + query);
-        Response response = null;
-        try {
-            response = target.request().get();
-        } catch (Exception e) {
-            logger.debug("Caught exeption : " + e.getMessage());
-            return parseTNSResponse(response);
-        }
-        return parseTNSResponse(response);
+    if (null != mSubscriber) {
+      mSubscriber.stop();
     }
+    mTerminated.set(true);
+  }
 
-    /**
-     * Terminate EZMQX subscriber.
-     *
-     */
-    public synchronized void terminate() throws EZMQXException {
-        if (mTerminated.get()) {
-            throw new EZMQXException("Subscriber already terminated", EZMQXErrorCode.Terminated);
-        }
-        if (null != mSubscriber) {
-            mSubscriber.stop();
-        }
-        mTerminated.set(true);
-    }
+  /**
+   * Check whether EZMQX subscriber is terminated or not.
+   *
+   * @return true if terminated otherwise false.
+   */
+  public boolean isTerminated() {
+    return mTerminated.get();
+  }
 
-    /**
-     * Check whether EZMQX subscriber is terminated or not.
-     *
-     * @return true if terminated otherwise false.
-     */
-    public boolean isTerminated() {
-        return mTerminated.get();
-    }
-
-    /**
-     * Get EZMQX topic list.
-     *
-     * @return list of {@link EZMQXTopic}
-     *
-     */
-    public List<EZMQXTopic> getTopics() {
-        return mStoredTopics;
-    }
+  /**
+   * Get EZMQX topic list.
+   *
+   * @return list of {@link EZMQXTopic}
+   *
+   */
+  public List<EZMQXTopic> getTopics() {
+    return mStoredTopics;
+  }
 }

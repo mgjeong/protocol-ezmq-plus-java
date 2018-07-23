@@ -19,17 +19,17 @@ package org.protocol.ezmqx.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.datamodel.aml.AMLException;
 import org.datamodel.aml.AMLObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.protocol.ezmqx.EZMQXAmlModelInfo;
+import org.protocol.ezmqx.EZMQXAmlPublisher;
 import org.protocol.ezmqx.EZMQXAmlSubscriber;
 import org.protocol.ezmqx.EZMQXConfig;
 import org.protocol.ezmqx.EZMQXEndPoint;
@@ -37,81 +37,131 @@ import org.protocol.ezmqx.EZMQXErrorCode;
 import org.protocol.ezmqx.EZMQXException;
 import org.protocol.ezmqx.EZMQXTopic;
 import org.protocol.ezmqx.EZMQXAmlSubscriber.EZMQXAmlSubCallback;
+import org.protocol.ezmqx.internal.RestClientFactoryInterface;
+import org.protocol.ezmqx.internal.RestFactory;
+import org.protocol.ezmqx.test.internal.FakeRestClientFactory;
 
 public class EZMQXAmlSubscriberTest {
-    private EZMQXConfig mConfig;
-    private EZMQXAmlSubCallback mCallback;
+  private EZMQXConfig mConfig;
+  private EZMQXAmlSubCallback mCallback;
+  private Lock mTerminateLock = new ReentrantLock();
+  private java.util.concurrent.locks.Condition mCondVar;
+  private int mEventCount;
+  private final int TOTAL_EVENTS = 5;
 
-    @Before
-    public void setup() throws EZMQXException {
-        mConfig = EZMQXConfig.getInstance();
-        mConfig.startStandAloneMode(false, "");
-        mCallback = new EZMQXAmlSubCallback() {
-            @Override
-            public void onMessage(String topic, AMLObject data) {}
+  @Before
+  public void setup() throws EZMQXException {
+    mConfig = EZMQXConfig.getInstance();
+    mConfig.startStandAloneMode(false, "");
+    mTerminateLock = new ReentrantLock();
+    mCondVar = mTerminateLock.newCondition();
+    RestClientFactoryInterface restFactory = new FakeRestClientFactory();
+    RestFactory.getInstance().setFactory(restFactory);
+    mEventCount = 0;
+    mCallback = new EZMQXAmlSubCallback() {
+      @Override
+      public void onMessage(String topic, AMLObject data) {
+        mEventCount++;
+      }
 
-            @Override
-            public void onError(String topic, EZMQXErrorCode errorCode) {}
-        };
-        assertNotNull(mConfig);
+      @Override
+      public void onError(String topic, EZMQXErrorCode errorCode) {
+        mEventCount++;
+      }
+    };
+    assertNotNull(mConfig);
+  }
+
+  @After
+  public void after() throws Exception {
+    try {
+      mConfig.reset();
+    } catch (Exception e) {
+
     }
+  }
 
-    @After
-    public void after() throws Exception {
-        mConfig.reset();
+  void publish() throws EZMQXException, AMLException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    mConfig.addAmlModel(amlFilePath);
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5562);
+    assertNotNull(publisher);
+
+    for (int i = 0; i <= TOTAL_EVENTS; i++) {
+      publisher.publish(TestUtils.getAMLObject());
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Test
-    public void getSubscriberTest() throws EZMQXException {
-        List<String> amlFilePath = new ArrayList<String>();
-        amlFilePath.add(TestUtils.FILE_PATH);
-        List<String> IdList = mConfig.addAmlModel(amlFilePath);
-        EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
-        EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), endPoint);
-        EZMQXAmlSubscriber subscriber = EZMQXAmlSubscriber.getSubscriber(topic, mCallback);
-        assertNotNull(subscriber);
-        subscriber.terminate();
+    publisher.terminate();
+    try {
+      mTerminateLock.lock();
+      mCondVar.signalAll();
+    } catch (Exception e) {
+    } finally {
+      mTerminateLock.unlock();
     }
+  }
 
-    @Test
-    public void getSubscriberTest1() throws EZMQXException {
-        List<String> amlFilePath = new ArrayList<String>();
-        amlFilePath.add(TestUtils.FILE_PATH);
-        List<String> IdList = mConfig.addAmlModel(amlFilePath);
-        EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
-        EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), endPoint);
-        List<EZMQXTopic> topicList = new ArrayList<EZMQXTopic>();
-        topicList.add(topic);
-        EZMQXAmlSubscriber subscriber = EZMQXAmlSubscriber.getSubscriber(topicList, mCallback);
-        assertNotNull(subscriber);
-        subscriber.terminate();
-    }
+  @Test
+  public void subscriberStandAloneTest() throws EZMQXException, AMLException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    List<String> IdList = mConfig.addAmlModel(amlFilePath);
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), endPoint);
+    EZMQXAmlSubscriber subscriber = EZMQXAmlSubscriber.getSubscriber(topic, mCallback);
+    assertNotNull(subscriber);
 
-    @Test
-    public void getSubscriberTest2() throws EZMQXException {
-        List<String> amlFilePath = new ArrayList<String>();
-        amlFilePath.add(TestUtils.FILE_PATH);
-        thrown.expect(EZMQXException.class);
-        EZMQXAmlSubscriber subscriber =
-                EZMQXAmlSubscriber.getSubscriber(TestUtils.TOPIC, true, mCallback);
-        assertNotNull(subscriber);
-        subscriber.terminate();
-    }
+    // Thread to publish data on socket
+    Thread thread = new Thread(new Runnable() {
+      public void run() {
+        try {
+          publish();
+        } catch (Exception e) {
+        }
+      }
+    });
+    thread.start();
 
-    @Test
-    public void terminateTest() throws EZMQXException, AMLException {
-        List<String> amlFilePath = new ArrayList<String>();
-        amlFilePath.add(TestUtils.FILE_PATH);
-        List<String> IdList = mConfig.addAmlModel(amlFilePath);
-        EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
-        EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), endPoint);
-        EZMQXAmlSubscriber subscriber = EZMQXAmlSubscriber.getSubscriber(topic, mCallback);
-        assertNotNull(subscriber);
-        assertEquals(subscriber.isTerminated(), false);
-        subscriber.terminate();
-        assertEquals(subscriber.isTerminated(), true);
+    // Prevent thread from exit till publisher stopped
+    try {
+      mTerminateLock.lock();
+      mCondVar.await();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } finally {
+      mTerminateLock.unlock();
     }
+    assertEquals(TOTAL_EVENTS, mEventCount);
+    subscriber.terminate();
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void subscriberDockerTest() throws EZMQXException, AMLException {
+    mConfig.reset();
+    try {
+      mConfig.startDockerMode();
+    } catch (EZMQXException e) {
+
+    }
+    EZMQXAmlSubscriber subscriber =
+        EZMQXAmlSubscriber.getSubscriber(TestUtils.TOPIC, true, mCallback);
+    assertNotNull(subscriber);
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getSubscriberNegativeTest() throws EZMQXException, AMLException {
+    mConfig.reset();
+    EZMQXEndPoint endPoint = new EZMQXEndPoint("127.0.0.1", 5562);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", endPoint);
+    List<EZMQXTopic> topicList = new ArrayList<EZMQXTopic>();
+    topicList.add(topic);
+    EZMQXAmlSubscriber subscriber = EZMQXAmlSubscriber.getSubscriber(topicList, mCallback);
+    assertNotNull(subscriber);
+  }
 }

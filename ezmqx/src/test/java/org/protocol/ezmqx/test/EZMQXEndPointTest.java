@@ -19,33 +19,42 @@ package org.protocol.ezmqx.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 import org.junit.Test;
 import org.protocol.ezmqx.EZMQXEndPoint;
 import org.protocol.ezmqx.EZMQXException;
 
 public class EZMQXEndPointTest {
-    public static final String IP_PORT = TestUtils.ADDRESS + ":" + TestUtils.PORT;
+  public static final String IP_PORT = TestUtils.ADDRESS + ":" + TestUtils.PORT;
 
-    @Test
-    public void constructorTest() throws EZMQXException {
-        EZMQXEndPoint instance = new EZMQXEndPoint(IP_PORT);
-        assertNotNull(instance);
-        assertEquals(instance.getAddr(), TestUtils.ADDRESS);
-        assertEquals(instance.getPort(), TestUtils.PORT);
-        assertEquals(instance.toString(), IP_PORT);
-        instance = new EZMQXEndPoint(TestUtils.ADDRESS);
-        assertNotNull(instance);
-        assertEquals(instance.getAddr(), TestUtils.ADDRESS);
-        assertEquals(instance.getPort(), -1);
-    }
+  @Test
+  public void constructorTest() throws EZMQXException {
+    EZMQXEndPoint instance = new EZMQXEndPoint(IP_PORT);
+    assertNotNull(instance);
+    assertEquals(instance.getAddr(), TestUtils.ADDRESS);
+    assertEquals(instance.getPort(), TestUtils.PORT);
+    assertEquals(instance.toString(), IP_PORT);
+    instance = new EZMQXEndPoint(TestUtils.ADDRESS);
+    assertNotNull(instance);
+    assertEquals(instance.getAddr(), TestUtils.ADDRESS);
+    assertEquals(instance.getPort(), -1);
+  }
 
-    @Test
-    public void constructorTest1() throws EZMQXException {
-        EZMQXEndPoint instance = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
-        assertNotNull(instance);
-        assertEquals(instance.getAddr(), TestUtils.ADDRESS);
-        assertEquals(instance.getPort(), TestUtils.PORT);
-        assertEquals(instance.toString(), IP_PORT);
-    }
+  @Test
+  public void constructorTest1() throws EZMQXException {
+    EZMQXEndPoint instance = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
+    assertNotNull(instance);
+    assertEquals(instance.getAddr(), TestUtils.ADDRESS);
+    assertEquals(instance.getPort(), TestUtils.PORT);
+    assertEquals(instance.toString(), IP_PORT);
+  }
+
+  @Test
+  public void constructorTest2() throws EZMQXException {
+    EZMQXEndPoint instance = new EZMQXEndPoint(TestUtils.ADDRESS);
+    assertNotNull(instance);
+    assertEquals(instance.getAddr(), TestUtils.ADDRESS);
+    assertEquals(instance.getPort(), -1);
+    assertEquals(instance.toString(), TestUtils.ADDRESS);
+    instance = new EZMQXEndPoint(null);
+  }
 }

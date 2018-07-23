@@ -21,7 +21,7 @@ package org.protocol.ezmqx;
  * Enum represent AML model info.
  */
 public enum EZMQXAmlModelInfo {
-    AML_MODEL_ID,
-    AML_FILE_PATH
+  AML_MODEL_ID,
+  AML_FILE_PATH
 }
 
