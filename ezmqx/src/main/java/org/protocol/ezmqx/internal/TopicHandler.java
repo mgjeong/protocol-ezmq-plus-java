@@ -207,8 +207,7 @@ public class TopicHandler {
   }
 
   private void sendKeepAlive() {
-    String keepAliveURL = RestUtils.HTTP_PREFIX + mTnsAddress + RestUtils.COLON
-        + RestUtils.TNS_KNOWN_PORT + RestUtils.PREFIX + RestUtils.TNS_KEEP_ALIVE;
+    String keepAliveURL = mTnsAddress + RestUtils.PREFIX + RestUtils.TNS_KEEP_ALIVE;
     logger.debug("[TNS Keep alive ] Rest URL: " + keepAliveURL);
 
     ObjectMapper mapper = new ObjectMapper();

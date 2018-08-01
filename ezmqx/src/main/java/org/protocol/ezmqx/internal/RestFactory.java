@@ -65,6 +65,6 @@ public class RestFactory {
 
   public RestResponse delete(String url, String query) throws Exception {
     RestClientInterface client = mRestInterface.getRestClient(mTimeOut);
-    return client.post(url, query);
+    return client.delete(url, query);
   }
 }

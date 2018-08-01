@@ -49,18 +49,18 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
 
   }
 
-    /**
-     * Get EZMQX publisher instance.
-     *
-     * @param topic Topic on which publisher will publish.
-     * @param modelInfo Enum value for AML model info
-     *        {@link EZMQXAmlModelInfo}.
-     * @param modelId AML model ID or AML file path.
-     * @param optionalPort Port to be used for publishing data. It will be
-     *        used only when EZMQX configured in standalone mode.
-     *
-     * @return AML Publisher {@link EZMQXAmlPublisher}
-     */
+  /**
+   * Get EZMQX publisher instance.
+   *
+   * @param topic Topic on which publisher will publish.
+   * @param modelInfo Enum value for AML model info
+   *        {@link EZMQXAmlModelInfo}.
+   * @param modelId AML model ID or AML file path.
+   * @param optionalPort Port to be used for publishing data. It will be
+   *        used only when EZMQX configured in standalone mode.
+   *
+   * @return AML Publisher {@link EZMQXAmlPublisher}
+   */
   public static EZMQXAmlPublisher getPublisher(String topic, EZMQXAmlModelInfo modelInfo,
       String modelId, int optionalPort) throws EZMQXException {
     EZMQXAmlPublisher publisher = new EZMQXAmlPublisher();

@@ -19,7 +19,7 @@ package org.protocol.ezmqx.internal;
 
 public class RestUtils {
   // URLs
-  public static final String NODE = "http://172.17.0.1:48098";
+  public static final String NODE = "http://pharos-node:48098";
   public static final String PREFIX = "/api/v1";
   public static final String API_CONFIG = "/management/device/configuration";
   public static final String API_APPS = "/management/apps";
@@ -32,10 +32,14 @@ public class RestUtils {
   public static final String QUERY_HIERARCHICAL = "&hierarchical=";
   public static final String QUERY_TRUE = "yes";
   public static final String QUERY_FALSE = "no";
+  public static final String REVERSE_PROXY_KNOWN_PORT = "80";
+  public static final String API_SEARCH_NODE = "/search/nodes";
+  public static final String REVERSE_PROXY_PREFIX = "/tns-server";
+  public static final String ANCHOR_IMAGE_NAME = "imageName=";
 
   // JSON Keys
   public static final String CONF_PROPS = "properties";
-  public static final String CONF_REMOTE_ADDR = "anchoraddress";
+  public static final String CONF_ANCHOR_ADDR = "anchorendpoint";
   public static final String CONF_NODE_ADDR = "nodeaddress";
   public static final String APPS_PROPS = "apps";
   public static final String APPS_ID = "id";
@@ -56,6 +60,18 @@ public class RestUtils {
   public static final String PAYLOAD_ENDPOINT = "endpoint";
   public static final String PAYLOAD_DATAMODEL = "datamodel";
   public static final String PAYLOAD_KEEPALIVE_INTERVAL = "ka_interval";
+  public static final String CONF_REVERSE_PROXY = "reverseproxy";
+  public static final String CONF_REVERSE_PROXY_ENABLED = "enabled";
+  public static final String NODES = "nodes";
+  public static final String NODES_STATUS = "status";
+  public static final String NODES_CONNECTED = "connected";
+  public static final String NODES_IP = "ip";
+  public static final String NODES_CONF = "config";
+  public static final String NODES_PROPS = "properties";
+  public static final String NODES_REVERSE_PROXY = "reverseproxy";
+  public static final String NODES_REVERSE_PROXY_ENABLED = "enabled";
+  public static final String CONFIG_ANCHOR_IMAGE_NAME = "imageName";
+
 
   // HostName file path
   public static final String HOSTNAME = "/etc/hostname";

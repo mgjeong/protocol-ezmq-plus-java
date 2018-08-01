@@ -95,29 +95,36 @@ public class EZMQXConfig {
 
   /**
    * Start/Configure EZMQX in docker mode.
+   * 
+   * @param tnsConfPath Path to TNS configuration file.
    */
-  public synchronized void startDockerMode() throws EZMQXException {
+  public synchronized void startDockerMode(String tnsConfPath) throws EZMQXException {
     if (mInitialized.get()) {
       throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
     }
-    mContext.initializeDockerMode();
+    mContext.initializeDockerMode(tnsConfPath);
     mInitialized.set(true);
     logger.debug("Started docker mode");
   }
 
-    /**
-     * Start/Configure EZMQX in stand-alone mode.
-     *
-     * @param useTns Whether to use TNS [Topic name server] or not.
-     * @param tnsAddr TNS address [IP:Port], if useTns is false this value
-     *        will be ignored.
-     */
-  public synchronized void startStandAloneMode(boolean useTns, String tnsAddr)
+  /**
+   * Start/Configure EZMQX in stand-alone mode.
+   *
+   * @param hostAddr IP address of host machine.
+   * @param useTns Whether to use TNS [Topic name server] or not.
+   * @param tnsAddr TNS address [Complete Rest address], if useTns is false this value
+   *        will be ignored. 
+   *        Examples:
+   *        With Reverse-proxy: http://192.168.0.1:80/tns-server
+   *        Without Reverse-proxy: http://192.168.0.1:48323
+   *             
+   */
+  public synchronized void startStandAloneMode(String hostAddr, boolean useTns, String tnsAddr)
       throws EZMQXException {
     if (mInitialized.get()) {
       throw new EZMQXException("Already started", EZMQXErrorCode.Initialized);
     }
-    mContext.initializeStandAloneMode(useTns, tnsAddr);
+    mContext.initializeStandAloneMode(hostAddr, useTns, tnsAddr);
     mInitialized.set(true);
     logger.debug("Started Standalone mode");
   }

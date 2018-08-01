@@ -25,13 +25,13 @@ public class EZMQXException extends Exception {
   private String mMsg;
   private EZMQXErrorCode mCode;
 
-    /**
-     * Constructor for EZMQX exception.
-     *
-     * @param msg String message to be set in exception.
-     * @param code Error code to be set in exception.
-     *        {@link EZMQXErrorCode}
-     */
+  /**
+   * Constructor for EZMQX exception.
+   *
+   * @param msg String message to be set in exception.
+   * @param code Error code to be set in exception.
+   *        {@link EZMQXErrorCode}
+   */
   public EZMQXException(String msg, EZMQXErrorCode code) {
     mMsg = msg;
     mCode = code;

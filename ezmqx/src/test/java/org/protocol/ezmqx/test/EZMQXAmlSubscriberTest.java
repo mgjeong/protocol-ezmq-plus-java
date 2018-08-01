@@ -39,6 +39,7 @@ import org.protocol.ezmqx.EZMQXTopic;
 import org.protocol.ezmqx.EZMQXAmlSubscriber.EZMQXAmlSubCallback;
 import org.protocol.ezmqx.internal.RestClientFactoryInterface;
 import org.protocol.ezmqx.internal.RestFactory;
+import org.protocol.ezmqx.test.internal.FakeRestClient;
 import org.protocol.ezmqx.test.internal.FakeRestClientFactory;
 
 public class EZMQXAmlSubscriberTest {
@@ -52,7 +53,7 @@ public class EZMQXAmlSubscriberTest {
   @Before
   public void setup() throws EZMQXException {
     mConfig = EZMQXConfig.getInstance();
-    mConfig.startStandAloneMode(false, "");
+    mConfig.startStandAloneMode(TestUtils.LOCAL_HOST, false, "");
     mTerminateLock = new ReentrantLock();
     mCondVar = mTerminateLock.newCondition();
     RestClientFactoryInterface restFactory = new FakeRestClientFactory();
@@ -141,17 +142,23 @@ public class EZMQXAmlSubscriberTest {
     subscriber.terminate();
   }
 
-  @Test(expected = EZMQXException.class)
+  @Test
   public void subscriberDockerTest() throws EZMQXException, AMLException {
     mConfig.reset();
-    try {
-      mConfig.startDockerMode();
-    } catch (EZMQXException e) {
+    FakeRestClient.setResponse(TestUtils.CONFIG_URL, TestUtils.VALID_CONFIG_RESPONSE);
+    FakeRestClient.setResponse(TestUtils.TNS_INFO_URL, TestUtils.VALID_TNS_INFO_RESPONSE);
+    FakeRestClient.setResponse(TestUtils.RUNNING_APPS_URL, TestUtils.VALID_RUNNING_APPS_RESPONSE);
+    FakeRestClient.setResponse(TestUtils.RUNNING_APP_INFO_URL, TestUtils.RUNNING_APP_INFO_RESPONSE);
+    mConfig.startDockerMode(TestUtils.TNS_CONFIG_FILE_PATH);
 
-    }
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    mConfig.addAmlModel(amlFilePath);
+    FakeRestClient.setResponse(TestUtils.SUB_TOPIC_H_URL, TestUtils.SUB_TOPIC_RESPONSE);
     EZMQXAmlSubscriber subscriber =
         EZMQXAmlSubscriber.getSubscriber(TestUtils.TOPIC, true, mCallback);
     assertNotNull(subscriber);
+    subscriber.terminate();
   }
 
   @Test(expected = EZMQXException.class)

@@ -60,16 +60,16 @@ public class EZMQXTopicDiscovery {
     return queryInternal(topic, false).get(0);
   }
 
-    /**
-     * Query the given topic to TNS [Topic name server] server. It will
-     * send query request with hierarchical option.
-     *
-     * For example: If topic name is /Topic then in success case TNS will
-     * return /Topic/A, /Topic/A/B etc.
-     *
-     * @param topic Topic to be search on TNS server.
-     * @return List of {@link EZMQXTopic}
-     */
+  /**
+   * Query the given topic to TNS [Topic name server] server. It will
+   * send query request with hierarchical option.
+   *
+   * For example: If topic name is /Topic then in success case TNS will
+   * return /Topic/A, /Topic/A/B etc.
+   *
+   * @param topic Topic to be search on TNS server.
+   * @return List of {@link EZMQXTopic}
+   */
   public List<EZMQXTopic> hierarchicalQuery(String topic) throws EZMQXException {
     return queryInternal(topic, true);
   }
@@ -94,8 +94,7 @@ public class EZMQXTopicDiscovery {
   }
 
   private List<EZMQXTopic> verifyTopic(String topic, boolean isHierarchical) throws EZMQXException {
-    String tnsURL = RestUtils.HTTP_PREFIX + mContext.getTnsAddr() + RestUtils.COLON
-        + RestUtils.TNS_KNOWN_PORT + RestUtils.PREFIX + RestUtils.TOPIC;
+    String tnsURL = mContext.getTnsAddr() + RestUtils.PREFIX + RestUtils.TOPIC;
     logger.debug("[Topic discovery] Rest URL: " + tnsURL);
     String query = RestUtils.QUERY_NAME + topic + RestUtils.QUERY_HIERARCHICAL
         + (isHierarchical == true ? RestUtils.QUERY_TRUE : RestUtils.QUERY_FALSE);
@@ -106,6 +105,7 @@ public class EZMQXTopicDiscovery {
       response = restClient.get(tnsURL, query);
     } catch (Exception e) {
       logger.debug("Caught exeption : " + e.getMessage());
+      throw new EZMQXException("Could not send request to TNS", EZMQXErrorCode.RestError);
     }
     return parseTNSResponse(response);
   }
@@ -126,12 +126,12 @@ public class EZMQXTopicDiscovery {
     try {
       root = mapper.readTree(jsonString);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new EZMQXException("Could not parse response", EZMQXErrorCode.RestError);
     }
 
     List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
-    JsonNode propertiesNode = root.path(RestUtils.PAYLOAD_TOPICS);
-    for (JsonNode node : propertiesNode) {
+    JsonNode topicNode = root.path(RestUtils.PAYLOAD_TOPICS);
+    for (JsonNode node : topicNode) {
       if (node.has(RestUtils.PAYLOAD_NAME) && node.has(RestUtils.PAYLOAD_DATAMODEL)
           && node.has(RestUtils.PAYLOAD_ENDPOINT)) {
         String name = node.path(RestUtils.PAYLOAD_NAME).asText();

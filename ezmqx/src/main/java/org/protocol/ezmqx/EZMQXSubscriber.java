@@ -158,7 +158,7 @@ public class EZMQXSubscriber {
     try {
       root = mapper.readTree(jsonString);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new EZMQXException("Could not parse response", EZMQXErrorCode.RestError);
     }
 
     List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
@@ -180,8 +180,7 @@ public class EZMQXSubscriber {
   protected List<EZMQXTopic> verifyTopics(String topic, boolean isHierarchical)
       throws EZMQXException {
     // Send post request to TNS server
-    String topicURL = RestUtils.HTTP_PREFIX + mContext.getTnsAddr() + RestUtils.COLON
-        + RestUtils.TNS_KNOWN_PORT + RestUtils.PREFIX + RestUtils.TOPIC;
+    String topicURL = mContext.getTnsAddr() + RestUtils.PREFIX + RestUtils.TOPIC;
     String query = RestUtils.QUERY_NAME + topic + RestUtils.QUERY_HIERARCHICAL
         + (isHierarchical == true ? RestUtils.QUERY_TRUE : RestUtils.QUERY_FALSE);
     logger.debug("[TNS get topic] Rest URL: " + topicURL);
@@ -192,7 +191,7 @@ public class EZMQXSubscriber {
     try {
       response = restClient.get(topicURL, query);
     } catch (Exception e) {
-      logger.debug("Caught exeption : " + e.getMessage());
+      throw new EZMQXException("Could not send request to TNS", EZMQXErrorCode.RestError);
     }
     return parseTNSResponse(response);
   }

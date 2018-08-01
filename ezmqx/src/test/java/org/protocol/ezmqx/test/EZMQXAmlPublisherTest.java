@@ -31,6 +31,7 @@ import org.protocol.ezmqx.EZMQXConfig;
 import org.protocol.ezmqx.EZMQXException;
 import org.protocol.ezmqx.internal.RestClientFactoryInterface;
 import org.protocol.ezmqx.internal.RestFactory;
+import org.protocol.ezmqx.test.internal.FakeRestClient;
 import org.protocol.ezmqx.test.internal.FakeRestClientFactory;
 
 public class EZMQXAmlPublisherTest {
@@ -41,7 +42,7 @@ public class EZMQXAmlPublisherTest {
     mConfig = EZMQXConfig.getInstance();
     RestClientFactoryInterface restFactory = new FakeRestClientFactory();
     RestFactory.getInstance().setFactory(restFactory);
-    mConfig.startStandAloneMode(false, "");
+    mConfig.startStandAloneMode(TestUtils.LOCAL_HOST, false, "");
     assertNotNull(mConfig);
   }
 
@@ -73,28 +74,26 @@ public class EZMQXAmlPublisherTest {
     publisher.terminate();
   }
 
-  @Test(expected = EZMQXException.class)
+  @Test
   public void getPublisherTest2() throws EZMQXException, AMLException {
     mConfig.reset();
-    try {
-      mConfig.startDockerMode();
-    } catch (Exception e) {
-    }
-
+    FakeRestClient.setResponse(TestUtils.CONFIG_URL, TestUtils.VALID_CONFIG_RESPONSE);
+    FakeRestClient.setResponse(TestUtils.TNS_INFO_URL, TestUtils.VALID_TNS_INFO_RESPONSE);
+    FakeRestClient.setResponse(TestUtils.RUNNING_APPS_URL, TestUtils.VALID_RUNNING_APPS_RESPONSE);
+    FakeRestClient.setResponse(TestUtils.RUNNING_APP_INFO_URL, TestUtils.RUNNING_APP_INFO_RESPONSE);
+    mConfig.startDockerMode(TestUtils.TNS_CONFIG_FILE_PATH);
+    FakeRestClient.setResponse(TestUtils.PUB_TNS_URL, TestUtils.VALID_PUB_TNS_RESPONSE);
     EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
         EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
     assertNotNull(publisher);
     publisher.terminate();
   }
 
-  @Test(expected = EZMQXException.class)
+  @Test
   public void getPublisherTest3() throws EZMQXException, AMLException {
     mConfig.reset();
-    try {
-      mConfig.startStandAloneMode(true, "0.0.0.0");
-    } catch (Exception e) {
-    }
-
+    mConfig.startStandAloneMode(TestUtils.ADDRESS, true, TestUtils.TNS_ADDRESS);
+    FakeRestClient.setResponse(TestUtils.PUB_TNS_URL, TestUtils.VALID_PUB_TNS_RESPONSE);
     EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
         EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
     assertNotNull(publisher);

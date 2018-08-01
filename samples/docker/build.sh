@@ -33,6 +33,8 @@ cp ./../../ezmqx-xmlsubscriber/target/ezmqx-xmlsubscriber-sample.jar .
 cp ./../../ezmqx-topicdiscovery/target/ezmqx-topicdiscovery-sample.jar .
 #copy .aml file
 cp ./../../ezmqx-publisher/src/main/resources/sample_data_model.aml .
+#copy tnsConf file
+cp ./../../ezmqx-publisher/src/main/resources/tnsConf.json .
 
 cd $DOCKER_ROOT
 if [ -d "./libs" ] ; then

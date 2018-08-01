@@ -18,17 +18,12 @@
 package org.protocol.ezmqx;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.ws.rs.core.Response;
 import org.edgexfoundry.ezmq.EZMQCallback;
 import org.edgexfoundry.ezmq.EZMQErrorCode;
 import org.edgexfoundry.ezmq.EZMQPublisher;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.protocol.ezmqx.internal.Context;
 import org.protocol.ezmqx.internal.RestResponse;
 import org.protocol.ezmqx.internal.RestFactory;
@@ -92,7 +87,7 @@ public class EZMQXPublisher {
     }
 
     // Init topic handler
-    if (!mContext.isStandAlone()) {
+    if (mContext.isTnsEnabled()) {
       mHandler = TopicHandler.getInstance();
       mHandler.initHandler();
       logger.debug("Initialized topic handler");
@@ -100,14 +95,13 @@ public class EZMQXPublisher {
     mTerminated = new AtomicBoolean(false);
   }
 
-  private boolean parseTopicResponse(RestResponse response) throws EZMQXException {
+  private void parseTopicResponse(RestResponse response) throws EZMQXException {
     int statusCode = response.getStatusCode();
     logger.debug("[TNS register topic] Status code: " + statusCode);
     if (statusCode != RestUtils.HTTP_CREATED) {
       mPublisher.stop(); // free the EZMQ publisher instance
       throw new EZMQXException("Could not register topic", EZMQXErrorCode.RestError);
     }
-
     String jsonString = response.getResponse();
     logger.debug("[TNS register topic] Response: " + jsonString);
     ObjectMapper mapper = new ObjectMapper();
@@ -115,8 +109,7 @@ public class EZMQXPublisher {
     try {
       root = mapper.readTree(jsonString);
     } catch (IOException e) {
-      e.printStackTrace();
-      return false;
+      throw new EZMQXException("Could not parse register response", EZMQXErrorCode.RestError);
     }
     if (root.has(RestUtils.PAYLOAD_KEEPALIVE_INTERVAL)) {
       int interval = root.path(RestUtils.PAYLOAD_KEEPALIVE_INTERVAL).asInt();
@@ -134,7 +127,6 @@ public class EZMQXPublisher {
         TopicHandler.getInstance().send(RestUtils.KEEPALIVE, "");
       }
     }
-    return true;
   }
 
   protected void registerTopic(EZMQXTopic topic) throws EZMQXException {
@@ -144,8 +136,7 @@ public class EZMQXPublisher {
     }
 
     // Send post request to TNS server
-    String topicURL = RestUtils.HTTP_PREFIX + mContext.getTnsAddr() + RestUtils.COLON
-        + RestUtils.TNS_KNOWN_PORT + RestUtils.PREFIX + RestUtils.TOPIC;
+    String topicURL = mContext.getTnsAddr() + RestUtils.PREFIX + RestUtils.TOPIC;
     logger.debug("[TNS register topic] Rest URL: " + topicURL);
     // Form post payload
     ObjectMapper mapper = new ObjectMapper();
@@ -163,30 +154,27 @@ public class EZMQXPublisher {
     try {
       response = restClient.post(topicURL, payload);
     } catch (Exception e) {
-      logger.debug("Caught exeption : " + e.getMessage());
-      return;
+      throw new EZMQXException("Could not send register request to TNS", EZMQXErrorCode.RestError);
     }
-    if (parseTopicResponse(response)) {
-      // send request to add topic to list
-      TopicHandler.getInstance().send(RestUtils.REGISTER, topic.getName());
-    }
+    parseTopicResponse(response);
+    // send request to add topic to list
+    TopicHandler.getInstance().send(RestUtils.REGISTER, topic.getName());
   }
 
   protected void unRegisterTopic(EZMQXTopic topic) throws EZMQXException {
     if (!(mContext.isTnsEnabled())) {
       return;
     }
-    String topicURL = RestUtils.HTTP_PREFIX + mContext.getTnsAddr() + RestUtils.COLON
-        + RestUtils.TNS_KNOWN_PORT + RestUtils.PREFIX + RestUtils.TOPIC;
+    String topicURL = mContext.getTnsAddr() + RestUtils.PREFIX + RestUtils.TOPIC;
     String query = RestUtils.QUERY_NAME + topic.getName();
     logger.debug("[TNS unregister topic] Rest URL: " + topicURL);
     logger.debug("[TNS unregister topic] Query: " + query);
-    ResteasyClient restClient = new ResteasyClientBuilder()
-        .establishConnectionTimeout(RestUtils.CONNECTION_TIMEOUT, TimeUnit.SECONDS).build();
-    ResteasyWebTarget target = (ResteasyWebTarget) restClient.target(topicURL + query);
+
+    RestFactory restClient = RestFactory.getInstance();
+    RestResponse response;
     try {
-      Response response = target.request().delete();
-      logger.debug("[TNS unregister topic] Response code: " + response.getStatus());
+      response = restClient.delete(topicURL, query);
+      logger.debug("[TNS unregister topic] Response code: " + response.getStatusCode());
     } catch (Exception e) {
       logger.debug("Caught exeption : " + e.getMessage());
       return;

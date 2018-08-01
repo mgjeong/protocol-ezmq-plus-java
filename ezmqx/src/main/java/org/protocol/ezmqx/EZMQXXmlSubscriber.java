@@ -92,17 +92,17 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
     mSubCallback = subCallback;
   }
 
-    /**
-     * Get XML subscriber instance. Note: This API will work only when
-     * EZMQX is configured/started in docker mode.It will internally query
-     * to TNS server with given topic and Hierarchical option.
-     *
-     * @param topic Topic for which subscriber will subscribe.
-     * @param isHierarchical Query TNS with hierarchical option.
-     * @param subCallback {@link EZMQXXmlSubCallback}
-     *
-     * @return EZMQ XML subscriber instance.
-     */
+  /**
+   * Get XML subscriber instance. Note: This API will work only when
+   * EZMQX is configured/started in docker mode.It will internally query
+   * to TNS server with given topic and Hierarchical option.
+   *
+   * @param topic Topic for which subscriber will subscribe.
+   * @param isHierarchical Query TNS with hierarchical option.
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ XML subscriber instance.
+   */
   public static EZMQXXmlSubscriber getSubscriber(String topic, boolean isHierarchical,
       EZMQXXmlSubCallback subCallback) throws EZMQXException {
     EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topic, isHierarchical, subCallback);
@@ -110,16 +110,16 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
     return subscriber;
   }
 
-    /**
-     * Get XML subscriber instance. Note: This API will work only when
-     * EZMQX is configured/started in stand alone mode.
-     *
-     * @param topic Topic for which subscriber will subscribe.[
-     *        {@link EZMQXTopic} ]
-     * @param subCallback {@link EZMQXXmlSubCallback}
-     *
-     * @return EZMQ XML subscriber instance.
-     */
+  /**
+   * Get XML subscriber instance. Note: This API will work only when
+   * EZMQX is configured/started in stand alone mode.
+   *
+   * @param topic Topic for which subscriber will subscribe.[
+   *        {@link EZMQXTopic} ]
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ XML subscriber instance.
+   */
   public static EZMQXXmlSubscriber getSubscriber(EZMQXTopic topic, EZMQXXmlSubCallback subCallback)
       throws EZMQXException {
     List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
@@ -129,16 +129,16 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
     return subscriber;
   }
 
-    /**
-     * Get XML subscriber instance. Note: This API will work only when
-     * EZMQX is configured/started in stand alone mode.
-     *
-     * @param topics List of topics for which subscriber will subscribe.[
-     *        {@link EZMQXTopic} ]
-     * @param subCallback {@link EZMQXXmlSubCallback}
-     *
-     * @return EZMQ XML subscriber instance.
-     */
+  /**
+   * Get XML subscriber instance. Note: This API will work only when
+   * EZMQX is configured/started in stand alone mode.
+   *
+   * @param topics List of topics for which subscriber will subscribe.[
+   *        {@link EZMQXTopic} ]
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ XML subscriber instance.
+   */
   public static EZMQXXmlSubscriber getSubscriber(List<EZMQXTopic> topics,
       EZMQXXmlSubCallback subCallback) throws EZMQXException {
     EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);

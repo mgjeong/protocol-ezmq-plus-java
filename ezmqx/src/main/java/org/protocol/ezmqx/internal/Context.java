@@ -18,6 +18,7 @@
 package org.protocol.ezmqx.internal;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,8 +49,10 @@ public class Context {
   private boolean mTnsEnabled;
   private AtomicBoolean mInitialized;
   private AtomicBoolean mTerminated;
-
-  private String mRemoteAddr;
+  private AtomicBoolean mReverseProxyEnabled;
+  private String mAnchorAddr;
+  private String mTnsAddr;
+  private String mTnsImageName;
   private Map<String, Representation> mAMLRepDic;
   private int mNumOfPort;
   private int mUsedIdx;
@@ -64,6 +67,7 @@ public class Context {
     mPorts = new HashMap<Integer, Integer>();
     mInitialized = new AtomicBoolean(false);
     mTerminated = new AtomicBoolean(false);
+    mReverseProxyEnabled = new AtomicBoolean(false);
     mUsedIdx = 0;
     mNumOfPort = 0;
     mStandAlone = false;
@@ -100,8 +104,12 @@ public class Context {
     return mTnsEnabled;
   }
 
+  public boolean isReverseProxyEnabled() {
+    return mReverseProxyEnabled.get();
+  }
+
   public String getTnsAddr() {
-    return mRemoteAddr;
+    return mTnsAddr;
   }
 
   public int assignDynamicPort() throws EZMQXException {
@@ -194,12 +202,26 @@ public class Context {
     return rep;
   }
 
-  public void initializeStandAloneMode(boolean useTns, String tnsAddr) throws EZMQXException {
+  private void readImageName(String tnsConfPath) throws EZMQXException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonNode configNode;
+    try {
+      configNode = objectMapper.readTree(new File(tnsConfPath));
+    } catch (Exception e) {
+      throw new EZMQXException("Could not read image name from file", EZMQXErrorCode.RestError);
+    }
+    if (configNode.has(RestUtils.CONFIG_ANCHOR_IMAGE_NAME)) {
+      mTnsImageName = configNode.path(RestUtils.CONFIG_ANCHOR_IMAGE_NAME).asText();
+      logger.debug("[Config] Image Name: " + mTnsImageName);
+    }
+  }
+
+  public void initializeStandAloneMode(String hostAddr, boolean useTns, String tnsAddr) throws EZMQXException {
     if (EZMQErrorCode.EZMQ_OK != EZMQAPI.getInstance().initialize()) {
       throw new EZMQXException("Could not start ezmq context", EZMQXErrorCode.UnKnownState);
     }
     mStandAlone = true;
-    setHostInfo(Utils.LOCAL_HOST, Utils.LOCAL_HOST);
+    setHostInfo(Utils.LOCAL_HOST, hostAddr);
     if (useTns) {
       setTnsInfo(tnsAddr);
     }
@@ -213,12 +235,12 @@ public class Context {
     mHostAddr = hostAddr;
   }
 
-  public void setTnsInfo(String remoteAddr) {
+  public void setTnsInfo(String tnsAddr) {
     mTnsEnabled = true;
-    mRemoteAddr = remoteAddr;
+    mTnsAddr = tnsAddr;
   }
 
-  private void parseConfigResponse(RestResponse response) {
+  private void parseConfigResponse(RestResponse response) throws EZMQXException {
     logger.debug("[Config] Status code: " + response.getStatusCode());
     String jsonString = response.getResponse();
     logger.debug("[Config] Response: " + jsonString);
@@ -228,25 +250,83 @@ public class Context {
     try {
       root = mapper.readTree(jsonString);
     } catch (IOException e) {
-      e.printStackTrace();
-      return;
+      throw new EZMQXException("Could not parse config response", EZMQXErrorCode.RestError);
     }
     JsonNode propertiesNode = root.path(RestUtils.CONF_PROPS);
     for (JsonNode node : propertiesNode) {
-      if (node.has(RestUtils.CONF_REMOTE_ADDR)) {
-        String anchoraddress = node.path(RestUtils.CONF_REMOTE_ADDR).asText();
-        logger.debug("[Config] anchoraddress: " + anchoraddress);
-        setTnsInfo(anchoraddress);
+      if (node.has(RestUtils.CONF_ANCHOR_ADDR)) {
+        mAnchorAddr = node.path(RestUtils.CONF_ANCHOR_ADDR).asText();
+        logger.debug("[Config] anchoraddress: " + mAnchorAddr);
       }
       if (node.has(RestUtils.CONF_NODE_ADDR)) {
-        String nodeaddress = node.path(RestUtils.CONF_NODE_ADDR).asText();
-        logger.debug("[Config] nodeaddress: " + nodeaddress);
-        mHostAddr = nodeaddress;
+        mHostAddr = node.path(RestUtils.CONF_NODE_ADDR).asText();
+        logger.debug("[Config] nodeaddress: " + mHostAddr);
       }
     }
   }
 
-  private void readFromFile(String filePath) {
+  private boolean parseProxyInfo(JsonNode propertiesNodes) {
+    boolean isProxyEnabled = false;
+    for (JsonNode propNode : propertiesNodes) {
+      if (propNode.has(RestUtils.NODES_REVERSE_PROXY)) {
+        JsonNode reverseProxy = propNode.path(RestUtils.NODES_REVERSE_PROXY);
+        if (reverseProxy.has(RestUtils.NODES_REVERSE_PROXY_ENABLED)) {
+          isProxyEnabled = reverseProxy.path(RestUtils.NODES_REVERSE_PROXY_ENABLED).asBoolean();
+        }
+      }
+    }
+    return isProxyEnabled;
+  }
+
+  private void parseTnsInfoResponse(RestResponse response) throws EZMQXException {
+    logger.debug("[TNS info] Status code: " + response.getStatusCode());
+    String jsonString = response.getResponse();
+    logger.debug("[TNS info] Response: " + jsonString);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonNode rootNode;
+    try {
+      rootNode = objectMapper.readTree(jsonString);
+    } catch (Exception e) {
+      throw new EZMQXException("Could not parse TNS info response", EZMQXErrorCode.RestError);
+    }
+
+    JsonNode nodes = rootNode.path(RestUtils.NODES);
+    for (JsonNode node : nodes) {
+      boolean isProxyEnabled = false;
+      String ipAddr = "";
+      String status = "";
+      if (node.has(RestUtils.NODES_STATUS)) {
+        status = node.path(RestUtils.NODES_STATUS).asText();
+        if (!status.equalsIgnoreCase(RestUtils.NODES_CONNECTED)) {
+          continue;
+        }
+      }
+
+      if (node.has(RestUtils.NODES_IP)) {
+        ipAddr = node.path(RestUtils.NODES_IP).asText();
+      }
+
+      if (node.has(RestUtils.NODES_CONF)) {
+        JsonNode configNode = node.path(RestUtils.NODES_CONF);
+        if (configNode.has(RestUtils.NODES_PROPS)) {
+          JsonNode propertiesNodes = configNode.path(RestUtils.NODES_PROPS);
+          isProxyEnabled = parseProxyInfo(propertiesNodes);
+        }
+      }
+
+      if (isProxyEnabled) {
+        mTnsAddr = RestUtils.HTTP_PREFIX + ipAddr + RestUtils.COLON
+            + RestUtils.REVERSE_PROXY_KNOWN_PORT + RestUtils.REVERSE_PROXY_PREFIX;
+      } else {
+        mTnsAddr = RestUtils.HTTP_PREFIX + ipAddr + RestUtils.COLON + RestUtils.TNS_KNOWN_PORT;
+      }
+      logger.debug(" TNS address is: " + mTnsAddr);
+      mReverseProxyEnabled.set(isProxyEnabled);
+    }
+  }
+
+  private void readHostName(String filePath) throws EZMQXException {
     logger.debug("File Path: " + filePath);
     BufferedReader bufferedReader = null;
     FileReader fileReader = null;
@@ -255,7 +335,7 @@ public class Context {
       bufferedReader = new BufferedReader(fileReader);
       mHostname = bufferedReader.readLine();
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new EZMQXException("Could not read host name from file", EZMQXErrorCode.RestError);
     } finally {
       try {
         if (bufferedReader != null)
@@ -268,7 +348,7 @@ public class Context {
     }
   }
 
-  private List<String> parseAppsResponse(RestResponse response) {
+  private List<String> parseAppsResponse(RestResponse response) throws EZMQXException {
     logger.debug("[Running apps] Status code: " + response.getStatusCode());
     String jsonString = response.getResponse();
     logger.debug("[Running apps] Response: " + jsonString);
@@ -279,8 +359,7 @@ public class Context {
     try {
       root = mapper.readTree(jsonString);
     } catch (IOException e) {
-      e.printStackTrace();
-      return runningApps;
+      throw new EZMQXException("Could not parse running apps response", EZMQXErrorCode.RestError);
     }
     JsonNode appsNode = root.path(RestUtils.APPS_PROPS);
     String id = null;
@@ -318,7 +397,7 @@ public class Context {
     }
   }
 
-  private void parseAppInfoResponse(RestResponse response) {
+  private void parseAppInfoResponse(RestResponse response) throws EZMQXException {
     logger.debug("[App info] Status code: " + response.getStatusCode());
     String jsonString = response.getResponse();
     logger.debug("[app info] Response: " + jsonString);
@@ -328,8 +407,7 @@ public class Context {
     try {
       root = mapper.readTree(jsonString);
     } catch (IOException e) {
-      e.printStackTrace();
-      return;
+      throw new EZMQXException("Could not parse app info response", EZMQXErrorCode.RestError);
     }
     JsonNode services = root.path(RestUtils.SERVICES_PROPS);
     String cid;
@@ -338,7 +416,6 @@ public class Context {
         cid = node.path(RestUtils.SERVICES_CON_ID).asText();
         cid = cid.substring(0, mHostname.length());
         logger.debug("[app info] cid: " + cid + " host Name: " + mHostname);
-        System.out.println("###### [app info] cid: " + cid + " host Name: " + mHostname);
         if (cid.equals(mHostname)) {
           parsePortInfo(node);
         }
@@ -346,21 +423,31 @@ public class Context {
     }
   }
 
-  public void initializeDockerMode() throws EZMQXException {
+  public void initializeDockerMode(String tnsConfPath) throws EZMQXException {
     if (EZMQErrorCode.EZMQ_OK != EZMQAPI.getInstance().initialize()) {
       throw new EZMQXException("Could not start ezmq context", EZMQXErrorCode.UnKnownState);
     }
-
-    RestFactory restClient = RestFactory.getInstance();
     try {
+      //Read image name from TNS config file
+      readImageName(tnsConfPath);
+
+      RestFactory restClient = RestFactory.getInstance();
+
       // Configuration resource
       String configURL = RestUtils.NODE + RestUtils.PREFIX + RestUtils.API_CONFIG;
       logger.debug("[Config] Rest URL: " + configURL);
       RestResponse configResponse = restClient.get(configURL);
       parseConfigResponse(configResponse);
 
+      // Get TNS information
+      String anchorTNSURL = mAnchorAddr + RestUtils.API_SEARCH_NODE;
+      String query = RestUtils.ANCHOR_IMAGE_NAME + mTnsImageName;
+      logger.debug("[Anchor TNS info] Rest URL: " + anchorTNSURL);
+      RestResponse tnsResponse = restClient.get(anchorTNSURL, query);
+      parseTnsInfoResponse(tnsResponse);
+
       // Get Host Name
-      readFromFile(RestUtils.HOSTNAME);
+      readHostName(RestUtils.HOSTNAME);
 
       // Applications resource
       String appsURL = RestUtils.NODE + RestUtils.PREFIX + RestUtils.API_APPS;
@@ -372,15 +459,16 @@ public class Context {
       String appInfoURL = RestUtils.NODE + RestUtils.PREFIX + RestUtils.API_APPS + RestUtils.SLASH;
       RestResponse appInfoResponse = null;
       for (String appId : runningApps) {
-        appInfoURL = appInfoURL + appId;
-        logger.debug("[App Info] Rest URL: " + appInfoURL);
-        appInfoResponse = restClient.get(appInfoURL);
+        String appURL = appInfoURL + appId;
+        logger.debug("[App Info] Rest URL: " + appURL);
+        appInfoResponse = restClient.get(appURL);
         parseAppInfoResponse(appInfoResponse);
       }
     } catch (Exception e) {
-      logger.debug("Caught exception: " + e.getMessage());
+      e.printStackTrace();
       throw new EZMQXException("Rest client error: " + e.getMessage(), EZMQXErrorCode.UnKnownState);
     }
+    mTnsEnabled = true;
     mInitialized.set(true);
     mTerminated.set(false);
     logger.debug("EZMQX Context created");
@@ -405,7 +493,8 @@ public class Context {
     mAMLRepDic.clear();
     mHostname = "";
     mHostAddr = "";
-    mRemoteAddr = "";
+    mAnchorAddr = "";
+    mTnsAddr = "";
     mUsedIdx = 0;
     mNumOfPort = 0;
     mStandAlone = false;

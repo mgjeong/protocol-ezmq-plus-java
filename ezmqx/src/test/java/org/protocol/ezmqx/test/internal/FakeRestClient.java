@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.protocol.ezmqx.internal.RestClientInterface;
 import org.protocol.ezmqx.internal.RestResponse;
+import org.protocol.ezmqx.internal.RestUtils;
 
 public class FakeRestClient implements RestClientInterface {
   private static Map<String, String> mRestResponse = new HashMap<String, String>();
@@ -41,7 +42,8 @@ public class FakeRestClient implements RestClientInterface {
 
   @Override
   public RestResponse get(String url, String query) throws Exception {
-    RestResponse restResponse = new RestResponse(200, mRestResponse.get(url));
+    RestResponse restResponse =
+        new RestResponse(200, mRestResponse.get(url + RestUtils.QUESTION_MARK + query));
     return restResponse;
   }
 
@@ -53,13 +55,14 @@ public class FakeRestClient implements RestClientInterface {
 
   @Override
   public RestResponse post(String url, String payload) throws Exception {
-    RestResponse restResponse = new RestResponse(200, mRestResponse.get(url));
+    RestResponse restResponse = new RestResponse(201, mRestResponse.get(url));
     return restResponse;
   }
 
   @Override
   public RestResponse delete(String url, String query) throws Exception {
-    RestResponse restResponse = new RestResponse(200, mRestResponse.get(url));
+    RestResponse restResponse =
+        new RestResponse(200, mRestResponse.get(url + RestUtils.QUESTION_MARK + query));
     return restResponse;
   }
 }
