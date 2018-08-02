@@ -113,8 +113,7 @@ public class EZMQXConfig {
    * @param hostAddr IP address of host machine.
    * @param useTns Whether to use TNS [Topic name server] or not.
    * @param tnsAddr TNS address [Complete Rest address], if useTns is false this value
-   *        will be ignored. 
-   *        Examples:
+   *        will be ignored.Examples:
    *        With Reverse-proxy: http://192.168.0.1:80/tns-server
    *        Without Reverse-proxy: http://192.168.0.1:48323
    *             
