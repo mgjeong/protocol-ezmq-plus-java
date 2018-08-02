@@ -57,7 +57,7 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
    *        {@link EZMQXAmlModelInfo}.
    * @param modelId AML model ID or AML file path.
    * @param optionalPort Port to be used for publishing data. It will be
-   *        used only when EZMQX configured in standalone mode.
+   *        used only when EZMQX configured in stand-alone mode.
    *
    * @return AML Publisher {@link EZMQXAmlPublisher}
    */
