@@ -31,118 +31,118 @@ import org.edgexfoundry.ezmq.bytedata.EZMQByteData;
  */
 public class EZMQXXmlSubscriber extends EZMQXSubscriber {
 
-    private EZMQXXmlSubCallback mSubCallback;
+  private EZMQXXmlSubCallback mSubCallback;
 
-    private EZMQXSubCallback mInternalCallback = new EZMQXSubCallback() {
-        public void onMessage(String topic, EZMQMessage ezmqMessage) {
-            if (null == topic || topic.isEmpty() || (!(mAMLRepDic.containsKey(topic)))) {
-                mSubCallback.onError(topic, EZMQXErrorCode.UnknownTopic);
-                return;
-            } else {
-                AMLObject amlObject = null;
-                Representation representation = mAMLRepDic.get(topic);
-                if (null == representation) {
-                    mSubCallback.onError(topic, EZMQXErrorCode.UnKnownState);
-                }
-                EZMQByteData byteData = (EZMQByteData) ezmqMessage;
-                try {
-                    amlObject = representation.ByteToData(byteData.getByteData());
-                    String amlString = representation.DataToAml(amlObject);
-                    mSubCallback.onMessage(topic, amlString);
-                } catch (AMLException e) {
-                    mSubCallback.onError(topic, EZMQXErrorCode.BrokenPayload);
-                }
-            }
+  private EZMQXSubCallback mInternalCallback = new EZMQXSubCallback() {
+    public void onMessage(String topic, EZMQMessage ezmqMessage) {
+      if (null == topic || topic.isEmpty() || (!(mAMLRepDic.containsKey(topic)))) {
+        mSubCallback.onError(topic, EZMQXErrorCode.UnknownTopic);
+        return;
+      } else {
+        AMLObject amlObject = null;
+        Representation representation = mAMLRepDic.get(topic);
+        if (null == representation) {
+          mSubCallback.onError(topic, EZMQXErrorCode.UnKnownState);
         }
-    };
+        EZMQByteData byteData = (EZMQByteData) ezmqMessage;
+        try {
+          amlObject = representation.ByteToData(byteData.getByteData());
+          String amlString = representation.DataToAml(amlObject);
+          mSubCallback.onMessage(topic, amlString);
+        } catch (AMLException e) {
+          mSubCallback.onError(topic, EZMQXErrorCode.BrokenPayload);
+        }
+      }
+    }
+  };
+
+  /**
+   * Interface to receive data/error callback from EZMQX XML subscriber.
+   */
+  public interface EZMQXXmlSubCallback {
 
     /**
-     * Interface to receive data/error callback from EZMQX XML subscriber.
+     * Invoked when data is received for a specific topic.
+     *
+     * @param topic Topic for the received data.
+     * @param data Received data.
      */
-    public interface EZMQXXmlSubCallback {
-
-        /**
-         * Invoked when data is received for a specific topic.
-         *
-         * @param topic Topic for the received data.
-         * @param data Received data.
-         */
-        public void onMessage(String topic, String data);
-
-        /**
-         * Invoked when error occurred for a specific topic.
-         *
-         * @param topic Topic for the error occurred.
-         * @param errorCode {@link EZMQXErrorCode}
-         */
-        public void onError(String topic, EZMQXErrorCode errorCode);
-    }
-
-    protected EZMQXXmlSubscriber(List<EZMQXTopic> topics, EZMQXXmlSubCallback subCallback)
-            throws EZMQXException {
-        super();
-        setSubCallback(mInternalCallback);
-        mSubCallback = subCallback;
-    }
-
-    protected EZMQXXmlSubscriber(String topic, boolean isHierarchical,
-            EZMQXXmlSubCallback subCallback) throws EZMQXException {
-        super();
-        setSubCallback(mInternalCallback);
-        mSubCallback = subCallback;
-    }
+    public void onMessage(String topic, String data);
 
     /**
-     * Get XML subscriber instance. Note: This API will work only when
-     * EZMQX is configured/started in docker mode.It will internally query
-     * to TNS server with given topic and Hierarchical option.
+     * Invoked when error occurred for a specific topic.
      *
-     * @param topic Topic for which subscriber will subscribe.
-     * @param isHierarchical Query TNS with hierarchical option.
-     * @param subCallback {@link EZMQXXmlSubCallback}
-     *
-     * @return EZMQ XML subscriber instance.
+     * @param topic Topic for the error occurred.
+     * @param errorCode {@link EZMQXErrorCode}
      */
-    public static EZMQXXmlSubscriber getSubscriber(String topic, boolean isHierarchical,
-            EZMQXXmlSubCallback subCallback) throws EZMQXException {
-        EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topic, isHierarchical, subCallback);
-        subscriber.initialize(topic, isHierarchical);
-        return subscriber;
-    }
+    public void onError(String topic, EZMQXErrorCode errorCode);
+  }
 
-    /**
-     * Get XML subscriber instance. Note: This API will work only when
-     * EZMQX is configured/started in stand alone mode.
-     *
-     * @param topic Topic for which subscriber will subscribe.[
-     *        {@link EZMQXTopic} ]
-     * @param subCallback {@link EZMQXXmlSubCallback}
-     *
-     * @return EZMQ XML subscriber instance.
-     */
-    public static EZMQXXmlSubscriber getSubscriber(EZMQXTopic topic,
-            EZMQXXmlSubCallback subCallback) throws EZMQXException {
-        List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
-        topics.add(topic);
-        EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
-        subscriber.initialize(topics);
-        return subscriber;
-    }
+  protected EZMQXXmlSubscriber(List<EZMQXTopic> topics, EZMQXXmlSubCallback subCallback)
+      throws EZMQXException {
+    super();
+    setSubCallback(mInternalCallback);
+    mSubCallback = subCallback;
+  }
 
-    /**
-     * Get XML subscriber instance. Note: This API will work only when
-     * EZMQX is configured/started in stand alone mode.
-     *
-     * @param topics List of topics for which subscriber will subscribe.[
-     *        {@link EZMQXTopic} ]
-     * @param subCallback {@link EZMQXXmlSubCallback}
-     *
-     * @return EZMQ XML subscriber instance.
-     */
-    public static EZMQXXmlSubscriber getSubscriber(List<EZMQXTopic> topics,
-            EZMQXXmlSubCallback subCallback) throws EZMQXException {
-        EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
-        subscriber.initialize(topics);
-        return subscriber;
-    }
+  protected EZMQXXmlSubscriber(String topic, boolean isHierarchical,
+      EZMQXXmlSubCallback subCallback) throws EZMQXException {
+    super();
+    setSubCallback(mInternalCallback);
+    mSubCallback = subCallback;
+  }
+
+  /**
+   * Get XML subscriber instance. Note: This API will work only when
+   * EZMQX is configured/started in docker mode.It will internally query
+   * to TNS server with given topic and Hierarchical option.
+   *
+   * @param topic Topic for which subscriber will subscribe.
+   * @param isHierarchical Query TNS with hierarchical option.
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ XML subscriber instance.
+   */
+  public static EZMQXXmlSubscriber getSubscriber(String topic, boolean isHierarchical,
+      EZMQXXmlSubCallback subCallback) throws EZMQXException {
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topic, isHierarchical, subCallback);
+    subscriber.initialize(topic, isHierarchical);
+    return subscriber;
+  }
+
+  /**
+   * Get XML subscriber instance. Note: This API will work only when
+   * EZMQX is configured/started in stand alone mode.
+   *
+   * @param topic Topic for which subscriber will subscribe.[
+   *        {@link EZMQXTopic} ]
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ XML subscriber instance.
+   */
+  public static EZMQXXmlSubscriber getSubscriber(EZMQXTopic topic, EZMQXXmlSubCallback subCallback)
+      throws EZMQXException {
+    List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
+    topics.add(topic);
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
+    subscriber.initialize(topics);
+    return subscriber;
+  }
+
+  /**
+   * Get XML subscriber instance. Note: This API will work only when
+   * EZMQX is configured/started in stand alone mode.
+   *
+   * @param topics List of topics for which subscriber will subscribe.[
+   *        {@link EZMQXTopic} ]
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ XML subscriber instance.
+   */
+  public static EZMQXXmlSubscriber getSubscriber(List<EZMQXTopic> topics,
+      EZMQXXmlSubCallback subCallback) throws EZMQXException {
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
+    subscriber.initialize(topics);
+    return subscriber;
+  }
 }

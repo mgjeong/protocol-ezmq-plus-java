@@ -15,13 +15,17 @@
  *
  *******************************************************************************/
 
-package org.protocol.ezmqx;
+package org.protocol.ezmqx.internal;
 
-/**
- * Enum represent AML model info.
- */
-public enum EZMQXAmlModelInfo {
-  AML_MODEL_ID,
-  AML_FILE_PATH
+public interface RestClientInterface {
+
+  RestResponse get(String url) throws Exception;
+
+  RestResponse get(String url, String query) throws Exception;
+
+  RestResponse put(String url, String payload) throws Exception;
+
+  RestResponse post(String url, String payload) throws Exception;
+
+  RestResponse delete(String url, String query) throws Exception;
 }
-

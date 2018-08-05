@@ -24,20 +24,20 @@ import org.protocol.ezmqx.EZMQXErrorCode;
 import org.protocol.ezmqx.EZMQXException;
 
 public class EZMQXExceptionTest {
-    private final String MSG = "This is testing exception";
-    private final EZMQXErrorCode ERROR_CODE = EZMQXErrorCode.NotInitialized;
+  private final String MSG = "This is testing exception";
+  private final EZMQXErrorCode ERROR_CODE = EZMQXErrorCode.NotInitialized;
 
-    @Test
-    public void getMsgTest() {
-        EZMQXException instance = new EZMQXException(MSG, ERROR_CODE);
-        assertNotNull(instance);
-        assertEquals(instance.getMsg(), MSG);
-    }
+  @Test
+  public void getMsgTest() {
+    EZMQXException instance = new EZMQXException(MSG, ERROR_CODE);
+    assertNotNull(instance);
+    assertEquals(instance.getMsg(), MSG);
+  }
 
-    @Test
-    public void getCodeTest() throws EZMQXException {
-        EZMQXException instance = new EZMQXException(MSG, ERROR_CODE);
-        assertNotNull(instance);
-        assertEquals(instance.getCode(), ERROR_CODE);
-    }
+  @Test
+  public void getCodeTest() throws EZMQXException {
+    EZMQXException instance = new EZMQXException(MSG, ERROR_CODE);
+    assertNotNull(instance);
+    assertEquals(instance.getCode(), ERROR_CODE);
+  }
 }

@@ -22,36 +22,36 @@ package org.protocol.ezmqx;
  */
 @SuppressWarnings("serial")
 public class EZMQXException extends Exception {
-    private String mMsg;
-    private EZMQXErrorCode mCode;
+  private String mMsg;
+  private EZMQXErrorCode mCode;
 
-    /**
-     * Constructor for EZMQX exception.
-     *
-     * @param msg String message to be set in exception.
-     * @param code Error code to be set in exception.
-     *        {@link EZMQXErrorCode}
-     */
-    public EZMQXException(String msg, EZMQXErrorCode code) {
-        mMsg = msg;
-        mCode = code;
-    }
+  /**
+   * Constructor for EZMQX exception.
+   *
+   * @param msg String message to be set in exception.
+   * @param code Error code to be set in exception.
+   *        {@link EZMQXErrorCode}
+   */
+  public EZMQXException(String msg, EZMQXErrorCode code) {
+    mMsg = msg;
+    mCode = code;
+  }
 
-    /**
-     * Get exception message.
-     *
-     * @return String message.
-     */
-    public String getMsg() {
-        return mMsg;
-    }
+  /**
+   * Get exception message.
+   *
+   * @return String message.
+   */
+  public String getMsg() {
+    return mMsg;
+  }
 
-    /**
-     * Get error code.
-     *
-     * @return EZMQXErrorCode
-     */
-    public EZMQXErrorCode getCode() {
-        return mCode;
-    }
+  /**
+   * Get error code.
+   *
+   * @return EZMQXErrorCode
+   */
+  public EZMQXErrorCode getCode() {
+    return mCode;
+  }
 }

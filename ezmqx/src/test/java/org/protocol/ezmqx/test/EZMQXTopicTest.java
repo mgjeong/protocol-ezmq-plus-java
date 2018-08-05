@@ -25,29 +25,29 @@ import org.protocol.ezmqx.EZMQXException;
 import org.protocol.ezmqx.EZMQXTopic;
 
 public class EZMQXTopicTest {
-    private final String DATA_MODEL = "Robot_1.1";
-    private final EZMQXEndPoint END_POINT = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
+  private final String DATA_MODEL = "Robot_1.1";
+  private final EZMQXEndPoint END_POINT = new EZMQXEndPoint(TestUtils.ADDRESS, TestUtils.PORT);
 
-    @Test
-    public void getNameTest() throws EZMQXException {
-        EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
-        assertNotNull(instance);
-        assertEquals(instance.getName(), TestUtils.TOPIC);
-    }
+  @Test
+  public void getNameTest() throws EZMQXException {
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
+    assertNotNull(instance);
+    assertEquals(instance.getName(), TestUtils.TOPIC);
+  }
 
-    @Test
-    public void getDataModelTest() throws EZMQXException {
-        EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
-        assertNotNull(instance);
-        assertEquals(instance.getDatamodel(), DATA_MODEL);
-    }
+  @Test
+  public void getDataModelTest() throws EZMQXException {
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
+    assertNotNull(instance);
+    assertEquals(instance.getDatamodel(), DATA_MODEL);
+  }
 
-    @Test
-    public void getEndPointTest() throws EZMQXException {
-        EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
-        assertNotNull(instance);
-        EZMQXEndPoint endPoint = instance.getEndPoint();
-        assertEquals(endPoint.getAddr(), TestUtils.ADDRESS);
-        assertEquals(endPoint.getPort(), TestUtils.PORT);
-    }
+  @Test
+  public void getEndPointTest() throws EZMQXException {
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
+    assertNotNull(instance);
+    EZMQXEndPoint endPoint = instance.getEndPoint();
+    assertEquals(endPoint.getAddr(), TestUtils.ADDRESS);
+    assertEquals(endPoint.getPort(), TestUtils.PORT);
+  }
 }

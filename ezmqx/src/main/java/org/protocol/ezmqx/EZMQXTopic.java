@@ -21,49 +21,49 @@ package org.protocol.ezmqx;
  * This class represents EZMQX topic.
  */
 public class EZMQXTopic {
-    private String mName;
-    private String mDataModel;
-    private EZMQXEndPoint mEndPoint;
+  private String mName;
+  private String mDataModel;
+  private EZMQXEndPoint mEndPoint;
 
-    /**
-     * Constructor for EZMQX topic.
-     *
-     * @param name Topic name.
-     * @param dataModel AML Data model ID.
-     * @param endPoint EZMQX end point.
-     *
-     */
-    public EZMQXTopic(String name, String dataModel, EZMQXEndPoint endPoint) {
-        mName = name;
-        mDataModel = dataModel;
-        mEndPoint = endPoint;
-    }
+  /**
+   * Constructor for EZMQX topic.
+   *
+   * @param name Topic name.
+   * @param dataModel AML Data model ID.
+   * @param endPoint EZMQX end point.
+   *
+   */
+  public EZMQXTopic(String name, String dataModel, EZMQXEndPoint endPoint) {
+    mName = name;
+    mDataModel = dataModel;
+    mEndPoint = endPoint;
+  }
 
-    /**
-     * Get topic name.
-     *
-     * @return Topic name as string.
-     */
-    public String getName() {
-        return mName;
-    }
+  /**
+   * Get topic name.
+   *
+   * @return Topic name as string.
+   */
+  public String getName() {
+    return mName;
+  }
 
-    /**
-     * Get AML data model id.
-     *
-     * @return Data model id as string.
-     */
-    public String getDatamodel() {
-        return mDataModel;
-    }
+  /**
+   * Get AML data model id.
+   *
+   * @return Data model id as string.
+   */
+  public String getDatamodel() {
+    return mDataModel;
+  }
 
-    /**
-     * Get EZMQX end point.
-     *
-     * @return EZMQXEndPoint
-     *
-     */
-    public EZMQXEndPoint getEndPoint() {
-        return mEndPoint;
-    }
+  /**
+   * Get EZMQX end point.
+   *
+   * @return EZMQXEndPoint
+   *
+   */
+  public EZMQXEndPoint getEndPoint() {
+    return mEndPoint;
+  }
 }

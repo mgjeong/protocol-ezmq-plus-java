@@ -15,13 +15,13 @@
  *
  *******************************************************************************/
 
-package org.protocol.ezmqx;
+package org.protocol.ezmqx.internal;
 
-/**
- * Enum represent AML model info.
- */
-public enum EZMQXAmlModelInfo {
-  AML_MODEL_ID,
-  AML_FILE_PATH
+public class RestClientFactory implements RestClientFactoryInterface {
+
+  @Override
+  public RestClientInterface getRestClient(int timeOut) {
+    RestClient client = new RestClient(timeOut);
+    return client;
+  }
 }
-

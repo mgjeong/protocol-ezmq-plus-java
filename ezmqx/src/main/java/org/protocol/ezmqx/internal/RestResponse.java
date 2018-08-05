@@ -15,13 +15,22 @@
  *
  *******************************************************************************/
 
-package org.protocol.ezmqx;
+package org.protocol.ezmqx.internal;
 
-/**
- * Enum represent AML model info.
- */
-public enum EZMQXAmlModelInfo {
-  AML_MODEL_ID,
-  AML_FILE_PATH
+public class RestResponse {
+  private int mStatusCode;
+  private String mResponse;
+
+  public RestResponse(int statusCode, String response) {
+    mStatusCode = statusCode;
+    mResponse = response;
+  }
+
+  public int getStatusCode() {
+    return mStatusCode;
+  }
+
+  public String getResponse() {
+    return mResponse;
+  }
 }
-

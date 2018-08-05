@@ -20,53 +20,73 @@ package org.protocol.ezmqx.test;
 import static org.junit.Assert.assertNotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.protocol.ezmqx.EZMQXConfig;
 import org.protocol.ezmqx.EZMQXException;
 import org.protocol.ezmqx.EZMQXTopicDiscovery;
+import org.protocol.ezmqx.internal.RestClientFactoryInterface;
+import org.protocol.ezmqx.internal.RestFactory;
+import org.protocol.ezmqx.test.internal.FakeRestClient;
+import org.protocol.ezmqx.test.internal.FakeRestClientFactory;
 
 public class EZMQXTopicDiscoveryTest {
 
-    private EZMQXConfig mConfig;
+  private EZMQXConfig mConfig;
 
-    @Before
-    public void setup() throws EZMQXException {
-        mConfig = EZMQXConfig.getInstance();
-        assertNotNull(mConfig);
+  @Before
+  public void setup() throws EZMQXException {
+    mConfig = EZMQXConfig.getInstance();
+    assertNotNull(mConfig);
+    RestClientFactoryInterface restFactory = new FakeRestClientFactory();
+    RestFactory.getInstance().setFactory(restFactory);
+  }
+
+  @After
+  public void after() throws Exception {
+    try {
+      mConfig.reset();
+    } catch (EZMQXException e) {
     }
+  }
 
-    @After
-    public void after() throws Exception {
-        mConfig.reset();
-    }
+  @Test
+  public void constructorTest() throws EZMQXException {
+    mConfig.startStandAloneMode(TestUtils.LOCAL_HOST, false, "");
+    EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
+    assertNotNull(instance);
+  }
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+  @Test
+  public void queryTest() throws EZMQXException {
+    mConfig.startStandAloneMode(TestUtils.ADDRESS, true, TestUtils.TNS_ADDRESS);
+    EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
+    assertNotNull(instance);
+    FakeRestClient.setResponse(TestUtils.TOPIC_DISCOVERY_URL,
+        TestUtils.VALID_TOPIC_DISCOVERY_RESPONSE);
+    instance.query(TestUtils.TOPIC);
+  }
 
-    @Test
-    public void constrctorTest() throws EZMQXException {
-        mConfig.startStandAloneMode(false, "");
-        EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
-        assertNotNull(instance);
-    }
+  @Test
+  public void hierarchicalQueryTest() throws EZMQXException {
+    mConfig.startStandAloneMode(TestUtils.ADDRESS, true, TestUtils.TNS_ADDRESS);
+    EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
+    assertNotNull(instance);
+    FakeRestClient.setResponse(TestUtils.TOPIC_DISCOVERY_H_URL,
+        TestUtils.VALID_TOPIC_DISCOVERY_RESPONSE);
+    instance.hierarchicalQuery(TestUtils.TOPIC);
+  }
 
-    @Test
-    public void queryTest() throws EZMQXException {
-        mConfig.startStandAloneMode(true, "127.0.0.1");
-        EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
-        assertNotNull(instance);
-        thrown.expect(EZMQXException.class);
-        instance.query("/topic");
-    }
+  @Test(expected = EZMQXException.class)
+  public void queryNegativeTest() throws EZMQXException {
+    EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
+    assertNotNull(instance);
+    instance.query(TestUtils.TOPIC);
+  }
 
-    @Test
-    public void hierarchicalQueryTest() throws EZMQXException {
-        mConfig.startStandAloneMode(true, "127.0.0.1");
-        EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
-        assertNotNull(instance);
-        thrown.expect(EZMQXException.class);
-        instance.hierarchicalQuery("/topic");
-    }
+  @Test(expected = EZMQXException.class)
+  public void hierarchicalQueryNegativeTest() throws EZMQXException {
+    EZMQXTopicDiscovery instance = new EZMQXTopicDiscovery();
+    assertNotNull(instance);
+    instance.hierarchicalQuery(TestUtils.TOPIC);
+  }
 }
