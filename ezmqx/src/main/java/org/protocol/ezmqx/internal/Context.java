@@ -216,7 +216,8 @@ public class Context {
     }
   }
 
-  public void initializeStandAloneMode(String hostAddr, boolean useTns, String tnsAddr) throws EZMQXException {
+  public void initializeStandAloneMode(String hostAddr, boolean useTns, String tnsAddr)
+      throws EZMQXException {
     if (EZMQErrorCode.EZMQ_OK != EZMQAPI.getInstance().initialize()) {
       throw new EZMQXException("Could not start ezmq context", EZMQXErrorCode.UnKnownState);
     }
