@@ -43,6 +43,7 @@ public class EZMQXAmlSubscriber extends EZMQXSubscriber {
         Representation representation = mAMLRepDic.get(topic);
         if (null == representation) {
           mSubCallback.onError(topic, EZMQXErrorCode.UnKnownState);
+          return;
         }
         EZMQByteData byteData = (EZMQByteData) ezmqMessage;
         try {

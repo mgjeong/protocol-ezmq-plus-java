@@ -244,6 +244,11 @@ public class TopicHandler {
       return false;
     }
 
+    if (null == requestType) {
+      logger.error("No request type in socket data");
+      return false;
+    }
+
     if (requestType.equals(RestUtils.SHUTDOWN)) {
       logger.debug("requestType: " + requestType);
       return true;
