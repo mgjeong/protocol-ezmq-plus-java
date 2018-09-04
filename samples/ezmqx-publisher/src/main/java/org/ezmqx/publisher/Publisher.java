@@ -124,7 +124,7 @@ public class Publisher {
 			}
 		}
 
-		// handle command line ctrl+c signal, terminate publisher
+		// handle command line ctrl+c signal, terminate publisher and ezmq
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			public void run() {
 				try {
