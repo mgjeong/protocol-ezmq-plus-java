@@ -19,6 +19,7 @@ package org.protocol.ezmqx;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.datamodel.aml.AMLException;
 import org.datamodel.aml.AMLObject;
 import org.datamodel.aml.Representation;
@@ -79,25 +80,17 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
     public void onError(String topic, EZMQXErrorCode errorCode);
   }
 
-  protected EZMQXXmlSubscriber(List<EZMQXTopic> topics, EZMQXXmlSubCallback subCallback)
-      throws EZMQXException {
-    super();
-    setSubCallback(mInternalCallback);
-    mSubCallback = subCallback;
-  }
-
-  protected EZMQXXmlSubscriber(String topic, boolean isHierarchical,
-      EZMQXXmlSubCallback subCallback) throws EZMQXException {
+  protected EZMQXXmlSubscriber(EZMQXXmlSubCallback subCallback) throws EZMQXException {
     super();
     setSubCallback(mInternalCallback);
     mSubCallback = subCallback;
   }
 
   /**
-   * Get XML subscriber instance. Note: This API will work only when
-   * EZMQX is configured/started in docker mode.It will internally query
-   * to TNS server with given topic and Hierarchical option.
-   *
+   * Get XML subscriber instance.
+   * Note: <br>
+   * (1) It will internally query to TNS server with given topic and Hierarchical option.
+   * 
    * @param topic Topic for which subscriber will subscribe.
    * @param isHierarchical Query TNS with hierarchical option.
    * @param subCallback {@link EZMQXXmlSubCallback}
@@ -106,14 +99,15 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
    */
   public static EZMQXXmlSubscriber getSubscriber(String topic, boolean isHierarchical,
       EZMQXXmlSubCallback subCallback) throws EZMQXException {
-    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topic, isHierarchical, subCallback);
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(subCallback);
     subscriber.initialize(topic, isHierarchical);
+    subscriber.mSecured = false;
     return subscriber;
   }
 
+
   /**
-   * Get XML subscriber instance. Note: This API will work only when
-   * EZMQX is configured/started in stand alone mode.
+   * Get XML subscriber instance.
    *
    * @param topic Topic for which subscriber will subscribe.[
    *        {@link EZMQXTopic} ]
@@ -123,17 +117,20 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
    */
   public static EZMQXXmlSubscriber getSubscriber(EZMQXTopic topic, EZMQXXmlSubCallback subCallback)
       throws EZMQXException {
+    if (topic.isSecured()) {
+      throw new EZMQXException("topic is secured", EZMQXErrorCode.InvalidParam);
+    }
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(subCallback);
     List<EZMQXTopic> topics = new ArrayList<EZMQXTopic>();
     topics.add(topic);
-    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
     subscriber.initialize(topics);
+    subscriber.mSecured = false;
     return subscriber;
   }
 
   /**
-   * Get XML subscriber instance. Note: This API will work only when
-   * EZMQX is configured/started in stand alone mode.
-   *
+   * Get XML subscriber instance. 
+   * 
    * @param topics List of topics for which subscriber will subscribe.[
    *        {@link EZMQXTopic} ]
    * @param subCallback {@link EZMQXXmlSubCallback}
@@ -142,8 +139,62 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
    */
   public static EZMQXXmlSubscriber getSubscriber(List<EZMQXTopic> topics,
       EZMQXXmlSubCallback subCallback) throws EZMQXException {
-    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(topics, subCallback);
+    for (EZMQXTopic topic : topics) {
+      if (topic.isSecured()) {
+        throw new EZMQXException("topic is secured", EZMQXErrorCode.InvalidParam);
+      }
+    }
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(subCallback);
     subscriber.initialize(topics);
+    subscriber.mSecured = false;
+    return subscriber;
+  }
+
+  /**
+   * Get Secured XML subscriber instance.
+   * Note: <br>
+   * (1) Key should be 40-character string encoded in the Z85 encoding format.
+   *
+   * @param topic Topic for which subscriber will subscribe.
+   * @param serverPublicKey Public key for server(publisher) that related with given topic.
+   * @param clientPublicKey Public key for client(subscriber) that shared with given topic's owner. 
+   * @param clientSecretKey Secret key for client(subscriber) that pair of given clientPublickey. 
+   * @param isHierarchical Query TNS with hierarchical option.
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ AML subscriber instance.
+   */
+  public static EZMQXXmlSubscriber getSecuredSubscriber(EZMQXTopic topic, String serverPublicKey,
+      String clientPublicKey, String clientSecretKey, EZMQXXmlSubCallback subCallback)
+      throws EZMQXException {
+    if (!topic.isSecured()) {
+      throw new EZMQXException("topic is unsecured", EZMQXErrorCode.InvalidParam);
+    }
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(subCallback);
+    subscriber.initialize(topic, serverPublicKey, clientPublicKey, clientSecretKey);
+    subscriber.mSecured = true;
+    return subscriber;
+  }
+
+
+  /**
+   * Get Secured XML subscriber instance. 
+   * Note:<br> 
+   * (1) Key should be 40-character string encoded in the Z85 encoding format.
+   *
+   * @param topicKeyMap Map of Topic and server's public keys.
+   * @param clientPublicKey Public key for client(subscriber) that shared with given topic's owner. 
+   * @param clientSecretKey Secret key for client(subscriber) that pair of given clientPublickey. 
+   * @param subCallback {@link EZMQXXmlSubCallback}
+   *
+   * @return EZMQ Secured XML subscriber instance.
+   */
+  public static EZMQXXmlSubscriber getSecuredSubscriber(Map<EZMQXTopic, String> topicKeyMap,
+      String clientPublicKey, String clientSecretKey, EZMQXXmlSubCallback subCallback)
+      throws EZMQXException {
+    EZMQXXmlSubscriber subscriber = new EZMQXXmlSubscriber(subCallback);
+    subscriber.initialize(topicKeyMap, clientPublicKey, clientSecretKey);
+    subscriber.mSecured = true;
     return subscriber;
   }
 }

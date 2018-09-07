@@ -39,17 +39,22 @@ public class EZMQXConfig {
   private static EZMQXConfig mInstance;
   private Context mContext;
   private AtomicBoolean mInitialized;
+  private static boolean mIsSecured;
 
   // setting log level as per application.properties
   static {
     InputStream stream = null;
     try {
       Properties props = new Properties();
-      stream = EZMQAPI.class.getResourceAsStream("/application.properties");
+      stream = EZMQAPI.class.getResourceAsStream("/ezmqx.properties");
       props.load(stream);
       String mode = props.getProperty("ezmqx.logging.level");
       if ((null != mode) && (mode.equalsIgnoreCase("DEBUG"))) {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+      }
+      String isSecured = props.getProperty("ezmqx.security");
+      if ((null != isSecured) && (isSecured.equalsIgnoreCase("TRUE"))) {
+        mIsSecured = true;
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -152,5 +157,9 @@ public class EZMQXConfig {
     mContext.terminate();
     mInitialized.set(false);
     logger.debug("EZMQX reset done");
+  }
+
+  boolean isBuiltSecured() {
+    return mIsSecured;
   }
 }

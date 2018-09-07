@@ -49,6 +49,7 @@ public class EZMQXSubscriber {
   protected List<EZMQXTopic> mStoredTopics;
   protected Map<String, Representation> mAMLRepDic;
   private EZMQXSubCallback mCallback;
+  protected boolean mSecured;
 
   private final static EdgeXLogger logger =
       EdgeXLoggerFactory.getEdgeXLogger(EZMQXSubscriber.class);
@@ -109,6 +110,34 @@ public class EZMQXSubscriber {
     }
   }
 
+  protected void initialize(EZMQXTopic topic, String serverKey, String clientPublicKey,
+      String clientSecretKey) throws EZMQXException {
+    if (!mContext.isInitialized()) {
+      throw new EZMQXException("Could not create Subscriber context not initialized",
+          EZMQXErrorCode.NotInitialized);
+    }
+    mAMLRepDic.put(topic.getName(), mContext.getAmlRep(topic.getDatamodel()));
+    subscribe(topic, serverKey, clientPublicKey, clientSecretKey);
+    mStoredTopics.add(topic);
+
+  }
+
+  protected void initialize(Map<EZMQXTopic, String> topicKeyMap, String clientPublicKey,
+      String clientSecretKey) throws EZMQXException {
+    if (!mContext.isInitialized()) {
+      throw new EZMQXException("Could not create Subscriber context not initialized",
+          EZMQXErrorCode.NotInitialized);
+    }
+    for (Map.Entry<EZMQXTopic, String> entry : topicKeyMap.entrySet()) {
+      EZMQXTopic topic = entry.getKey();
+      String serverKey = entry.getValue();
+      mAMLRepDic.put(topic.getName(), mContext.getAmlRep(topic.getDatamodel()));
+      subscribe(topic, serverKey, clientPublicKey, clientSecretKey);
+      mStoredTopics.add(topic);
+    }
+
+  }
+
   private void createSubscriber(EZMQXEndPoint endPoint) throws EZMQXException {
     mSubscriber = new EZMQSubscriber(endPoint.getAddr(), endPoint.getPort(), new EZMQSubCallback() {
       public void onMessageCB(String topic, EZMQMessage ezmqMessage) {
@@ -120,24 +149,88 @@ public class EZMQXSubscriber {
 
       public void onMessageCB(EZMQMessage ezmqMessage) {}
     });
-
-    if (EZMQErrorCode.EZMQ_OK != mSubscriber.start()) {
-      throw new EZMQXException("Could not connect endpoint: " + endPoint.toString(),
-          EZMQXErrorCode.SessionUnavailable);
-    }
   }
 
   protected void subscribe(EZMQXTopic topic) throws EZMQXException {
     EZMQXEndPoint endPoint = topic.getEndPoint();
     if (null == mSubscriber) {
       createSubscriber(endPoint);
-    }
-    EZMQErrorCode errorCode =
-        mSubscriber.subscribe(endPoint.getAddr(), endPoint.getPort(), topic.getName());
+      //start subscriber
+      if (EZMQErrorCode.EZMQ_OK != mSubscriber.start()) {
+        throw new EZMQXException("Could not connect endpoint: " + endPoint.toString(),
+            EZMQXErrorCode.SessionUnavailable);
+      }
+      EZMQErrorCode errorCode = mSubscriber.subscribe(topic.getName());
+      if (EZMQErrorCode.EZMQ_OK != errorCode) {
+        throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
+            EZMQXErrorCode.SessionUnavailable);
+      }
 
-    if (EZMQErrorCode.EZMQ_OK != errorCode) {
-      throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
-          EZMQXErrorCode.SessionUnavailable);
+    } else {
+      EZMQErrorCode errorCode =
+          mSubscriber.subscribe(endPoint.getAddr(), endPoint.getPort(), topic.getName());
+
+      if (EZMQErrorCode.EZMQ_OK != errorCode) {
+        throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
+            EZMQXErrorCode.SessionUnavailable);
+      }
+    }
+    logger.debug("Subscribed for topic: " + topic.getName());
+  }
+
+  protected void subscribe(EZMQXTopic topic, String serverPublicKey, String clientPublicKey,
+      String clientSecretKey) throws EZMQXException {
+    if (clientSecretKey.length() != Utils.KEY_LENGTH || clientPublicKey.length() != Utils.KEY_LENGTH
+        || serverPublicKey.length() != Utils.KEY_LENGTH) {
+      throw new EZMQXException("Invalid key", EZMQXErrorCode.InvalidParam);
+    }
+    EZMQXEndPoint endPoint = topic.getEndPoint();
+    if (null == mSubscriber) {
+      createSubscriber(endPoint);
+      //set client keys
+      try {
+        EZMQErrorCode result = mSubscriber.setServerPublicKey(serverPublicKey);
+        if (result != EZMQErrorCode.EZMQ_OK) {
+          throw new EZMQXException("Invalid key", EZMQXErrorCode.UnKnownState);
+        }
+
+        result = mSubscriber.setClientKeys(clientSecretKey, clientPublicKey);
+        if (result != EZMQErrorCode.EZMQ_OK) {
+          throw new EZMQXException("Invalid key", EZMQXErrorCode.UnKnownState);
+        }
+      } catch (Exception e) {
+        throw new EZMQXException(e.getMessage(), EZMQXErrorCode.UnKnownState);
+      }
+
+      //start subscriber
+      if (EZMQErrorCode.EZMQ_OK != mSubscriber.start()) {
+        throw new EZMQXException("Could not connect endpoint: " + endPoint.toString(),
+            EZMQXErrorCode.SessionUnavailable);
+      }
+
+      EZMQErrorCode errorCode = mSubscriber.subscribe(topic.getName());
+      if (EZMQErrorCode.EZMQ_OK != errorCode) {
+        throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
+            EZMQXErrorCode.SessionUnavailable);
+      }
+
+    } else {
+      //set the server key
+      try {
+        EZMQErrorCode result = mSubscriber.setServerPublicKey(serverPublicKey);
+        if (result != EZMQErrorCode.EZMQ_OK) {
+          throw new EZMQXException("Invalid key", EZMQXErrorCode.UnKnownState);
+        }
+      } catch (Exception e) {
+        throw new EZMQXException(e.getMessage(), EZMQXErrorCode.UnKnownState);
+      }
+      EZMQErrorCode errorCode =
+          mSubscriber.subscribe(endPoint.getAddr(), endPoint.getPort(), topic.getName());
+
+      if (EZMQErrorCode.EZMQ_OK != errorCode) {
+        throw new EZMQXException("Could not Subscribe to endpoint: " + endPoint.toString(),
+            EZMQXErrorCode.SessionUnavailable);
+      }
     }
     logger.debug("Subscribed for topic: " + topic.getName());
   }
@@ -165,12 +258,17 @@ public class EZMQXSubscriber {
     JsonNode propertiesNode = root.path(RestUtils.PAYLOAD_TOPICS);
     for (JsonNode node : propertiesNode) {
       if (node.has(RestUtils.PAYLOAD_NAME) && node.has(RestUtils.PAYLOAD_DATAMODEL)
-          && node.has(RestUtils.PAYLOAD_ENDPOINT)) {
+          && node.has(RestUtils.PAYLOAD_ENDPOINT) && node.has(RestUtils.PAYLOAD_SECURED)) {
         String name = node.path(RestUtils.PAYLOAD_NAME).asText();
         String dataModel = node.path(RestUtils.PAYLOAD_DATAMODEL).asText();
         String ep = node.path(RestUtils.PAYLOAD_ENDPOINT).asText();
+        boolean isSecured = node.path(RestUtils.PAYLOAD_SECURED).asBoolean();
+        if (!mSecured && isSecured || mSecured && !isSecured) { //TODO discuss for cases
+          throw new EZMQXException("Topic is secured and subscriber to be created is unsecured",
+              EZMQXErrorCode.UnKnownState);
+        }
         EZMQXEndPoint endPoint = new EZMQXEndPoint(ep);
-        EZMQXTopic topic = new EZMQXTopic(name, dataModel, endPoint);
+        EZMQXTopic topic = new EZMQXTopic(name, dataModel, isSecured, endPoint);
         topics.add(topic);
       }
     }
@@ -227,5 +325,14 @@ public class EZMQXSubscriber {
    */
   public List<EZMQXTopic> getTopics() {
     return mStoredTopics;
+  }
+
+  /**
+   * Check if subscriber is secured or not.
+   *
+   * @return Returns true if subscriber is secured otherwise false.
+   */
+  public boolean isSecured() {
+    return mSecured;
   }
 }
