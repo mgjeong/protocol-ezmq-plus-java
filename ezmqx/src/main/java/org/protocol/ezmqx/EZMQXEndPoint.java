@@ -28,10 +28,10 @@ public class EZMQXEndPoint {
   /**
    * Constructor for EZMQX EndPoint.
    *
-   * @param address Address to set in end point. <br>
-   *        Example: 127.0.0.0:4545 <br>
-   *        Note: If address contains only IP address port will be
-   *        assigned with -1.
+   * @param address Address to set in end point. <b>Example:</b> 127.0.0.0:4545 <br><br>
+   * 
+   * <b>Note:</b> <br>
+   *   (1)If address contains only IP address port will be assigned with -1.
    */
   public EZMQXEndPoint(String address) {
     if (null == address) {

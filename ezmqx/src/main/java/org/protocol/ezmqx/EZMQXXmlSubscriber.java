@@ -87,8 +87,8 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
   }
 
   /**
-   * Get XML subscriber instance.
-   * Note: <br>
+   * Get XML subscriber instance.<br>
+   * <b>Note:</b> <br>
    * (1) It will internally query to TNS server with given topic and Hierarchical option.
    * 
    * @param topic Topic for which subscriber will subscribe.
@@ -151,15 +151,14 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
   }
 
   /**
-   * Get Secured XML subscriber instance.
-   * Note: <br>
+   * Get Secured XML subscriber instance.<br>
+   * <b>Note:</b> <br>
    * (1) Key should be 40-character string encoded in the Z85 encoding format.
    *
    * @param topic Topic for which subscriber will subscribe.
    * @param serverPublicKey Public key for server(publisher) that related with given topic.
    * @param clientPublicKey Public key for client(subscriber) that shared with given topic's owner. 
    * @param clientSecretKey Secret key for client(subscriber) that pair of given clientPublickey. 
-   * @param isHierarchical Query TNS with hierarchical option.
    * @param subCallback {@link EZMQXXmlSubCallback}
    *
    * @return EZMQ AML subscriber instance.
@@ -178,8 +177,8 @@ public class EZMQXXmlSubscriber extends EZMQXSubscriber {
 
 
   /**
-   * Get Secured XML subscriber instance. 
-   * Note:<br> 
+   * Get Secured XML subscriber instance.<br>
+   * <b>Note:</b><br> 
    * (1) Key should be 40-character string encoded in the Z85 encoding format.
    *
    * @param topicKeyMap Map of Topic and server's public keys.

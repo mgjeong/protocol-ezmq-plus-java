@@ -62,9 +62,9 @@ public class EZMQXTopicDiscovery {
 
   /**
    * Query the given topic to TNS [Topic name server] server. It will
-   * send query request with hierarchical option.
+   * send query request with hierarchical option.<br> 
    *
-   * For example: If topic name is /Topic then in success case TNS will
+   * <b>For example:</b><br>  If topic name is /Topic then in success case TNS will
    * return /Topic/A, /Topic/A/B etc.
    *
    * @param topic Topic to be search on TNS server.

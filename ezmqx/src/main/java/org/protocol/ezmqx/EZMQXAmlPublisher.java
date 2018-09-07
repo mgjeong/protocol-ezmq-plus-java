@@ -70,7 +70,9 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
   }
 
   /**
-   * Get Secured EZMQX publisher instance.
+   * Get Secured EZMQX publisher instance.<br>
+   * <b>Note:</b> <br>
+   * (1) serverPrivateKey should be 40-character string encoded in the Z85 encoding format <br>
    *
    * @param topic Topic on which publisher will publish.
    * @param serverPrivateKey Server private/Secret key.
@@ -81,9 +83,6 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
    *        used only when EZMQX configured in stand-alone mode.
    *
    * @return Secured AML Publisher {@link EZMQXAmlPublisher}
-   * 
-   * Note: <br>
-   * (1) serverPrivateKey should be 40-character string encoded in the Z85 encoding format <br>
    */
   public static EZMQXAmlPublisher getSecuredPublisher(String topic, String serverPrivateKey,
       EZMQXAmlModelInfo modelInfo, String modelId, int optionalPort) throws EZMQXException {
