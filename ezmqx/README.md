@@ -21,6 +21,11 @@
    - Goto: `~/protocol-ezmq-plus-java/ezmqx/src/main/resources`
    - Modify logging level in **application.properties**: 
         ` ezmqx.logging.level=DEBUG`
+	
+(g) To build in **unsecure** mode:
+   - Goto: `~/protocol-ezmq-plus-java/ezmqx/src/main/resources`
+   - Modify security flag in **application.properties**: 
+        ` ezmqx.security=FALSE`  
 
 ## ezmq-plus Binary info ##
    - ezmq-plus library
