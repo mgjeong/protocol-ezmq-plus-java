@@ -30,24 +30,31 @@ public class EZMQXTopicTest {
 
   @Test
   public void getNameTest() throws EZMQXException {
-    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, false, END_POINT);
     assertNotNull(instance);
     assertEquals(instance.getName(), TestUtils.TOPIC);
   }
 
   @Test
   public void getDataModelTest() throws EZMQXException {
-    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, false, END_POINT);
     assertNotNull(instance);
     assertEquals(instance.getDatamodel(), DATA_MODEL);
   }
 
   @Test
   public void getEndPointTest() throws EZMQXException {
-    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, END_POINT);
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, false, END_POINT);
     assertNotNull(instance);
     EZMQXEndPoint endPoint = instance.getEndPoint();
     assertEquals(endPoint.getAddr(), TestUtils.ADDRESS);
     assertEquals(endPoint.getPort(), TestUtils.PORT);
+  }
+
+  @Test
+  public void isSecuredTest() throws EZMQXException {
+    EZMQXTopic instance = new EZMQXTopic(TestUtils.TOPIC, DATA_MODEL, true, END_POINT);
+    assertNotNull(instance);
+    assertEquals(instance.isSecured(), true);
   }
 }
