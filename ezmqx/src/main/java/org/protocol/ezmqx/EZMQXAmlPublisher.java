@@ -64,7 +64,30 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
   public static EZMQXAmlPublisher getPublisher(String topic, EZMQXAmlModelInfo modelInfo,
       String modelId, int optionalPort) throws EZMQXException {
     EZMQXAmlPublisher publisher = new EZMQXAmlPublisher();
-    publisher.initialize(optionalPort);
+    publisher.initialize(optionalPort, Utils.EMPTY_STRING);
+    publisher.registerTopic(topic, modelInfo, modelId, optionalPort);
+    return publisher;
+  }
+
+  /**
+   * Get Secured EZMQX publisher instance.<br>
+   * <b>Note:</b> <br>
+   * (1) serverPrivateKey should be 40-character string encoded in the Z85 encoding format <br>
+   *
+   * @param topic Topic on which publisher will publish.
+   * @param serverPrivateKey Server private/Secret key.
+   * @param modelInfo Enum value for AML model info
+   *        {@link EZMQXAmlModelInfo}.
+   * @param modelId AML model ID or AML file path.
+   * @param optionalPort Port to be used for publishing data. It will be
+   *        used only when EZMQX configured in stand-alone mode.
+   *
+   * @return Secured AML Publisher {@link EZMQXAmlPublisher}
+   */
+  public static EZMQXAmlPublisher getSecuredPublisher(String topic, String serverPrivateKey,
+      EZMQXAmlModelInfo modelInfo, String modelId, int optionalPort) throws EZMQXException {
+    EZMQXAmlPublisher publisher = new EZMQXAmlPublisher();
+    publisher.initialize(optionalPort, serverPrivateKey);
     publisher.registerTopic(topic, modelInfo, modelId, optionalPort);
     return publisher;
   }
@@ -89,7 +112,7 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
     }
     EZMQXTopic ezmqTopic = null;
     try {
-      ezmqTopic = new EZMQXTopic(topic, mRepresentation.getRepresentationId(),
+      ezmqTopic = new EZMQXTopic(topic, mRepresentation.getRepresentationId(), mSecured,
           mContext.getHostEp(mLocalPort));
     } catch (AMLException e) {
       mPublisher.stop();

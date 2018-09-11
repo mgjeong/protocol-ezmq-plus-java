@@ -62,9 +62,9 @@ public class EZMQXTopicDiscovery {
 
   /**
    * Query the given topic to TNS [Topic name server] server. It will
-   * send query request with hierarchical option.
+   * send query request with hierarchical option.<br> 
    *
-   * For example: If topic name is /Topic then in success case TNS will
+   * <b>For example:</b><br>  If topic name is /Topic then in success case TNS will
    * return /Topic/A, /Topic/A/B etc.
    *
    * @param topic Topic to be search on TNS server.
@@ -133,12 +133,13 @@ public class EZMQXTopicDiscovery {
     JsonNode topicNode = root.path(RestUtils.PAYLOAD_TOPICS);
     for (JsonNode node : topicNode) {
       if (node.has(RestUtils.PAYLOAD_NAME) && node.has(RestUtils.PAYLOAD_DATAMODEL)
-          && node.has(RestUtils.PAYLOAD_ENDPOINT)) {
+          && node.has(RestUtils.PAYLOAD_ENDPOINT) && node.has(RestUtils.PAYLOAD_SECURED)) {
         String name = node.path(RestUtils.PAYLOAD_NAME).asText();
         String dataModel = node.path(RestUtils.PAYLOAD_DATAMODEL).asText();
         String ep = node.path(RestUtils.PAYLOAD_ENDPOINT).asText();
+        boolean isSecured = node.path(RestUtils.PAYLOAD_SECURED).asBoolean();
         EZMQXEndPoint endPoint = new EZMQXEndPoint(ep);
-        EZMQXTopic topic = new EZMQXTopic(name, dataModel, endPoint);
+        EZMQXTopic topic = new EZMQXTopic(name, dataModel, isSecured, endPoint);
         topics.add(topic);
       }
     }

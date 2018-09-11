@@ -59,6 +59,7 @@ public class RestUtils {
   public static final String PAYLOAD_NAME = "name";
   public static final String PAYLOAD_ENDPOINT = "endpoint";
   public static final String PAYLOAD_DATAMODEL = "datamodel";
+  public static final String PAYLOAD_SECURED = "secured";
   public static final String PAYLOAD_KEEPALIVE_INTERVAL = "ka_interval";
   public static final String CONF_REVERSE_PROXY = "reverseproxy";
   public static final String CONF_REVERSE_PROXY_ENABLED = "enabled";

@@ -23,6 +23,7 @@ package org.protocol.ezmqx;
 public class EZMQXTopic {
   private String mName;
   private String mDataModel;
+  private boolean mSecured;
   private EZMQXEndPoint mEndPoint;
 
   /**
@@ -30,13 +31,15 @@ public class EZMQXTopic {
    *
    * @param name Topic name.
    * @param dataModel AML Data model ID.
+   * @param secured Secured topic or not.
    * @param endPoint EZMQX end point.
    *
    */
-  public EZMQXTopic(String name, String dataModel, EZMQXEndPoint endPoint) {
+  public EZMQXTopic(String name, String dataModel, boolean secured, EZMQXEndPoint endPoint) {
     mName = name;
     mDataModel = dataModel;
     mEndPoint = endPoint;
+    mSecured = secured;
   }
 
   /**
@@ -61,9 +64,17 @@ public class EZMQXTopic {
    * Get EZMQX end point.
    *
    * @return EZMQXEndPoint
-   *
    */
   public EZMQXEndPoint getEndPoint() {
     return mEndPoint;
+  }
+
+  /**
+   * Check if topic is secured or not.
+   *
+   * @return Returns true if topic is secured otherwise false.
+   */
+  public boolean isSecured() {
+    return mSecured;
   }
 }

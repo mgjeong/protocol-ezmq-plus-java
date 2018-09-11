@@ -100,6 +100,14 @@ public class EZMQXAmlPublisherTest {
     publisher.terminate();
   }
 
+  @Test
+  public void getSecuredPublisherTest() throws EZMQXException, AMLException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getSecuredPublisher(TestUtils.TOPIC,
+        TestUtils.SERVER_SECRET_KEY, EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5563);
+    assertNotNull(publisher);
+    publisher.terminate();
+  }
+
   @Test(expected = EZMQXException.class)
   public void getPublisherTest4() throws EZMQXException {
     EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.INVALID_TOPIC,
@@ -133,5 +141,14 @@ public class EZMQXAmlPublisherTest {
     assertEquals(publisher.isTerminated(), false);
     publisher.terminate();
     assertEquals(publisher.isTerminated(), true);
+  }
+
+  @Test
+  public void getIsSecuredTest() throws EZMQXException, AMLException {
+    EZMQXAmlPublisher publisher = EZMQXAmlPublisher.getPublisher(TestUtils.TOPIC,
+        EZMQXAmlModelInfo.AML_FILE_PATH, TestUtils.FILE_PATH, 5564);
+    assertNotNull(publisher);
+    assertEquals(publisher.isSecured(), false);
+    publisher.terminate();
   }
 }

@@ -26,6 +26,9 @@ public class Utils {
   private final static String SLASH = "/";
   private final static String DOUBLE_SLASH = "//";
   private final static String TOPIC_PATTERN = "(/)[a-zA-Z0-9-_./]+";
+  public static final int KEY_LENGTH = 40;
+  public static final String EMPTY_STRING = "";
+
   // private final static String TOPIC_WILD_CARD = "*";
   // private final static String TOPIC_WILD_PATTERN = "/*/";
 

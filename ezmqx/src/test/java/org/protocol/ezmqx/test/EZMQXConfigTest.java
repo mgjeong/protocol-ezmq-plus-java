@@ -60,6 +60,12 @@ public class EZMQXConfigTest {
     mConfig.startStandAloneMode(TestUtils.ADDRESS, true, TestUtils.TNS_ADDRESS);
   }
 
+  @Test(expected = EZMQXException.class)
+  public void startStandAloneModeTwiceTest() throws EZMQXException {
+    mConfig.startStandAloneMode(TestUtils.LOCAL_HOST, false, "");
+    mConfig.startStandAloneMode(TestUtils.LOCAL_HOST, false, "");
+  }
+
   @Test
   public void startDockerModeTest() throws EZMQXException {
     FakeRestClient.setResponse(TestUtils.CONFIG_URL, TestUtils.VALID_CONFIG_RESPONSE);

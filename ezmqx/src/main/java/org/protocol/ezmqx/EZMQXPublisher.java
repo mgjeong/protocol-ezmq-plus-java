@@ -29,6 +29,7 @@ import org.protocol.ezmqx.internal.RestResponse;
 import org.protocol.ezmqx.internal.RestFactory;
 import org.protocol.ezmqx.internal.RestUtils;
 import org.protocol.ezmqx.internal.TopicHandler;
+import org.protocol.ezmqx.internal.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +45,7 @@ public class EZMQXPublisher {
   protected EZMQXTopic mTopic;
   protected AtomicBoolean mTerminated;
   protected int mLocalPort;
+  protected boolean mSecured;
 
   private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(EZMQXPublisher.class);
 
@@ -59,7 +61,7 @@ public class EZMQXPublisher {
     terminate();
   }
 
-  protected void initialize(int optionalPort) throws EZMQXException {
+  protected void initialize(int optionalPort, String serverPrivateKey) throws EZMQXException {
     if (!mContext.isInitialized()) {
       throw new EZMQXException("Could not create publisher context not initialized",
           EZMQXErrorCode.NotInitialized);
@@ -82,6 +84,22 @@ public class EZMQXPublisher {
     if (null == mPublisher) {
       throw new EZMQXException("Could not create ezmq publisher", EZMQXErrorCode.UnKnownState);
     }
+
+    //Set server key
+    if (serverPrivateKey.length() == Utils.KEY_LENGTH) {
+      try {
+        EZMQErrorCode result = mPublisher.setServerPrivateKey(serverPrivateKey);
+        if (result != EZMQErrorCode.EZMQ_OK) {
+          logger.error("setServerPrivateKey [Result]: " + result);
+          throw new EZMQXException("Could not set key", EZMQXErrorCode.InvalidParam);
+        }
+      } catch (Exception e) {
+        logger.error("setServerPrivateKey [Exception occured]: " + e.getMessage());
+        throw new EZMQXException(e.getMessage(), EZMQXErrorCode.UnKnownState);
+      }
+      mSecured = true;
+    }
+
     if (EZMQErrorCode.EZMQ_OK != mPublisher.start()) {
       throw new EZMQXException("Could not start ezmq publisher", EZMQXErrorCode.UnKnownState);
     }
@@ -145,6 +163,7 @@ public class EZMQXPublisher {
     ((ObjectNode) nodeTopic).put(RestUtils.PAYLOAD_NAME, topic.getName());
     ((ObjectNode) nodeTopic).put(RestUtils.PAYLOAD_ENDPOINT, topic.getEndPoint().toString());
     ((ObjectNode) nodeTopic).put(RestUtils.PAYLOAD_DATAMODEL, topic.getDatamodel());
+    ((ObjectNode) nodeTopic).put(RestUtils.PAYLOAD_SECURED, topic.isSecured());
     ((ObjectNode) rootNode).set(RestUtils.PAYLOAD_TOPIC, nodeTopic);
     String payload = rootNode.toString();
     logger.debug("[TNS register topic] payload : " + payload);
@@ -227,5 +246,14 @@ public class EZMQXPublisher {
    */
   public boolean isTerminated() {
     return mTerminated.get();
+  }
+
+  /**
+   * Check if publisher is secured or not.
+   *
+   * @return Returns true if publisher is secured otherwise false.
+   */
+  public boolean isSecured() {
+    return mSecured;
   }
 }

@@ -20,7 +20,9 @@ package org.protocol.ezmqx.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.datamodel.aml.AMLException;
@@ -29,12 +31,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.protocol.ezmqx.EZMQXAmlModelInfo;
 import org.protocol.ezmqx.EZMQXAmlPublisher;
+import org.protocol.ezmqx.EZMQXXmlSubscriber;
 import org.protocol.ezmqx.EZMQXConfig;
 import org.protocol.ezmqx.EZMQXEndPoint;
 import org.protocol.ezmqx.EZMQXErrorCode;
 import org.protocol.ezmqx.EZMQXException;
 import org.protocol.ezmqx.EZMQXTopic;
-import org.protocol.ezmqx.EZMQXXmlSubscriber;
 import org.protocol.ezmqx.EZMQXXmlSubscriber.EZMQXXmlSubCallback;
 import org.protocol.ezmqx.internal.RestClientFactoryInterface;
 import org.protocol.ezmqx.internal.RestFactory;
@@ -110,7 +112,7 @@ public class EZMQXXmlSubscriberTest {
     amlFilePath.add(TestUtils.FILE_PATH);
     List<String> IdList = mConfig.addAmlModel(amlFilePath);
     EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
-    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), endPoint);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), false, endPoint);
     EZMQXXmlSubscriber subscriber = EZMQXXmlSubscriber.getSubscriber(topic, mCallback);
     assertNotNull(subscriber);
 
@@ -139,6 +141,49 @@ public class EZMQXXmlSubscriberTest {
   }
 
   @Test
+  public void getSubscriberTest() throws EZMQXException, AMLException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    List<String> IdList = mConfig.addAmlModel(amlFilePath);
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), false, endPoint);
+    List<EZMQXTopic> topicList = new ArrayList<EZMQXTopic>();
+    topicList.add(topic);
+    EZMQXXmlSubscriber subscriber = EZMQXXmlSubscriber.getSubscriber(topicList, mCallback);
+    assertNotNull(subscriber);
+    subscriber.terminate();
+  }
+
+  @Test
+  public void getSecuredSubscriberTest1() throws EZMQXException, AMLException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    List<String> IdList = mConfig.addAmlModel(amlFilePath);
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), true, endPoint);
+    EZMQXXmlSubscriber subscriber =
+        EZMQXXmlSubscriber.getSecuredSubscriber(topic, TestUtils.SERVER_PUBLIC_KEY,
+            TestUtils.CLIENT_PUBLIC_KEY, TestUtils.CLIENT_SECRET_KEY, mCallback);
+    assertNotNull(subscriber);
+    subscriber.terminate();
+  }
+
+  @Test
+  public void getSecuredSubscriberTest2() throws EZMQXException, AMLException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    List<String> IdList = mConfig.addAmlModel(amlFilePath);
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), true, endPoint);
+    Map<EZMQXTopic, String> topicKeyMap = new HashMap<EZMQXTopic, String>();
+    topicKeyMap.put(topic, TestUtils.SERVER_PUBLIC_KEY);
+    EZMQXXmlSubscriber subscriber = EZMQXXmlSubscriber.getSecuredSubscriber(topicKeyMap,
+        TestUtils.CLIENT_PUBLIC_KEY, TestUtils.CLIENT_SECRET_KEY, mCallback);
+    assertNotNull(subscriber);
+    subscriber.terminate();
+  }
+
+  @Test
   public void subscriberDockerTest() throws EZMQXException, AMLException {
     mConfig.reset();
     FakeRestClient.setResponse(TestUtils.CONFIG_URL, TestUtils.VALID_CONFIG_RESPONSE);
@@ -157,14 +202,64 @@ public class EZMQXXmlSubscriberTest {
     subscriber.terminate();
   }
 
+  @Test
+  public void getStatusFunTest() throws EZMQXException, AMLException {
+    List<String> amlFilePath = new ArrayList<String>();
+    amlFilePath.add(TestUtils.FILE_PATH);
+    List<String> IdList = mConfig.addAmlModel(amlFilePath);
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, IdList.get(0), false, endPoint);
+    List<EZMQXTopic> topicList = new ArrayList<EZMQXTopic>();
+    topicList.add(topic);
+    EZMQXXmlSubscriber subscriber = EZMQXXmlSubscriber.getSubscriber(topicList, mCallback);
+    subscriber.getTopics();
+    assertEquals(subscriber.isSecured(), false);
+    assertEquals(subscriber.isTerminated(), false);
+    subscriber.terminate();
+  }
+
   @Test(expected = EZMQXException.class)
-  public void getSubscriberNegativeTest() throws EZMQXException, AMLException {
+  public void getSubscriberNegativeTest1() throws EZMQXException, AMLException {
     mConfig.reset();
     EZMQXEndPoint endPoint = new EZMQXEndPoint("127.0.0.1", 5562);
-    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", endPoint);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", false, endPoint);
     List<EZMQXTopic> topicList = new ArrayList<EZMQXTopic>();
     topicList.add(topic);
     EZMQXXmlSubscriber subscriber = EZMQXXmlSubscriber.getSubscriber(topicList, mCallback);
     assertNotNull(subscriber);
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getSubscriberNegativeTest2() throws EZMQXException, AMLException {
+    EZMQXEndPoint endPoint = new EZMQXEndPoint("127.0.0.1", 5562);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", true, endPoint);
+    EZMQXXmlSubscriber.getSubscriber(topic, mCallback);
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getSubscriberNegativeTest3() throws EZMQXException, AMLException {
+    EZMQXEndPoint endPoint = new EZMQXEndPoint("127.0.0.1", 5562);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", true, endPoint);
+    List<EZMQXTopic> topicList = new ArrayList<EZMQXTopic>();
+    topicList.add(topic);
+    EZMQXXmlSubscriber.getSubscriber(topicList, mCallback);
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getSecuredSubscriberNegativeTest1() throws EZMQXException, AMLException {
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", false, endPoint);
+    EZMQXXmlSubscriber.getSecuredSubscriber(topic, TestUtils.SERVER_PUBLIC_KEY,
+        TestUtils.CLIENT_PUBLIC_KEY, TestUtils.CLIENT_SECRET_KEY, mCallback);
+  }
+
+  @Test(expected = EZMQXException.class)
+  public void getSecuredSubscriberNegativeTest2() throws EZMQXException, AMLException {
+    EZMQXEndPoint endPoint = new EZMQXEndPoint(TestUtils.LOCAL_HOST, TestUtils.PORT);
+    EZMQXTopic topic = new EZMQXTopic(TestUtils.TOPIC, "robot_1.0", false, endPoint);
+    Map<EZMQXTopic, String> topicKeyMap = new HashMap<EZMQXTopic, String>();
+    topicKeyMap.put(topic, TestUtils.SERVER_PUBLIC_KEY);
+    EZMQXXmlSubscriber.getSecuredSubscriber(topicKeyMap, TestUtils.CLIENT_PUBLIC_KEY,
+        TestUtils.CLIENT_SECRET_KEY, mCallback);
   }
 }

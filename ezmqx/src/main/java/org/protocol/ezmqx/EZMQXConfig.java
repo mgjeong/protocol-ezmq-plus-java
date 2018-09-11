@@ -39,17 +39,22 @@ public class EZMQXConfig {
   private static EZMQXConfig mInstance;
   private Context mContext;
   private AtomicBoolean mInitialized;
+  private static boolean mIsSecured;
 
   // setting log level as per application.properties
   static {
     InputStream stream = null;
     try {
       Properties props = new Properties();
-      stream = EZMQAPI.class.getResourceAsStream("/application.properties");
+      stream = EZMQAPI.class.getResourceAsStream("/ezmqx.properties");
       props.load(stream);
       String mode = props.getProperty("ezmqx.logging.level");
       if ((null != mode) && (mode.equalsIgnoreCase("DEBUG"))) {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+      }
+      String isSecured = props.getProperty("ezmqx.security");
+      if ((null != isSecured) && (isSecured.equalsIgnoreCase("TRUE"))) {
+        mIsSecured = true;
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -113,9 +118,10 @@ public class EZMQXConfig {
    * @param hostAddr IP address of host machine.
    * @param useTns Whether to use TNS [Topic name server] or not.
    * @param tnsAddr TNS address [Complete Rest address], if useTns is false this value
-   *        will be ignored.Examples:<br>
-   *        With Reverse-proxy: http://192.168.0.1:80/tns-server<br>
-   *        Without Reverse-proxy: http://192.168.0.1:48323 
+   *        will be ignored.<br>
+   *        <b>Examples:</b><br>
+   *        (1) With Reverse-proxy: http://192.168.0.1:80/tns-server<br>
+   *        (2) Without Reverse-proxy: http://192.168.0.1:48323 
    *             
    */
   public synchronized void startStandAloneMode(String hostAddr, boolean useTns, String tnsAddr)
@@ -152,5 +158,9 @@ public class EZMQXConfig {
     mContext.terminate();
     mInitialized.set(false);
     logger.debug("EZMQX reset done");
+  }
+
+  boolean isBuiltSecured() {
+    return mIsSecured;
   }
 }
