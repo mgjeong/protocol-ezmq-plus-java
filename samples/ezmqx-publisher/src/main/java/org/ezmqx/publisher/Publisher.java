@@ -217,11 +217,8 @@ public class Publisher {
         e.printStackTrace();
       }
 
-      if (isStandAlone) {
-        publishData(amlObject, 100000);
-      } else {
-        publishData(amlObject, 100000);
-      }
+      publishData(amlObject, 100000);
+
     } catch (EZMQXException e) {
       System.out.println(
           "[App] Exception occured [Errorcode]: " + e.getCode() + "  [Message]: " + e.getMsg());
