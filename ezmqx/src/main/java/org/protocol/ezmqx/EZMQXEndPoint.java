@@ -23,7 +23,7 @@ package org.protocol.ezmqx;
 public class EZMQXEndPoint {
   private String mAddress;
   private int mPort;
-  private final String COLLON = ":";
+  private final static String COLLON = ":";
 
   /**
    * Constructor for EZMQX EndPoint.

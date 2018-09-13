@@ -46,7 +46,10 @@ public class EZMQXAmlPublisher extends EZMQXPublisher {
   // this object.
   @Override
   protected void finalize() {
-
+    try {
+      super.finalize();
+    } catch (Throwable e) {
+    }
   }
 
   /**

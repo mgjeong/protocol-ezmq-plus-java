@@ -86,7 +86,7 @@ public class EZMQXSubscriber {
     if (false == result) {
       throw new EZMQXException("Invalid topic", EZMQXErrorCode.InvalidTopic);
     }
-    List<EZMQXTopic> verified = new ArrayList<EZMQXTopic>();
+    List<EZMQXTopic> verified = null;
     if (mContext.isTnsEnabled()) {
       verified = verifyTopics(topic, isHierarchical);
       if (verified.isEmpty()) {

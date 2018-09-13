@@ -96,6 +96,10 @@ public class EZMQXConfig {
   @Override
   protected void finalize() {
     mContext.terminate();
+    try {
+      super.finalize();
+    } catch (Throwable e) {
+    }
   }
 
   /**

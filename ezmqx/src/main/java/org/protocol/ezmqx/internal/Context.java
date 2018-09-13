@@ -86,6 +86,10 @@ public class Context {
   @Override
   protected void finalize() {
     terminate();
+    try {
+      super.finalize();
+    } catch (Throwable e) {
+    }
   }
 
   public boolean isInitialized() {
