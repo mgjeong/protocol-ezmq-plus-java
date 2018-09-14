@@ -28,6 +28,9 @@ EZMQX_TARGET_ARCH="x86_64"
 EZMQX_WITH_DEP=false
 EZMQX_INSTALL_PREREQUISITES=false
 
+PROTOCOL_EZMQ_JAVA_VERSION=v1.0_rc1
+DATAMODEL_AML_JAVA_VERSION=v1.0_rc1
+
 install_dependencies() {
     if [ -d "./dependencies" ] ; then
         echo "dependencies folder exists"
@@ -42,6 +45,7 @@ install_dependencies() {
     else
         git clone git@github.sec.samsung.net:RS7-EdgeComputing/protocol-ezmq-java.git
     fi
+    git checkout ${PROTOCOL_EZMQ_JAVA_VERSION}
 
     cd ./protocol-ezmq-java
     echo -e "Building protocol-ezmq-java library"
@@ -54,6 +58,7 @@ install_dependencies() {
     else
         git clone git@github.sec.samsung.net:RS7-EdgeComputing/datamodel-aml-java.git
     fi
+	 git checkout ${DATAMODEL_AML_JAVA_VERSION}
 
     cd ./datamodel-aml-java
     echo -e "Building datamodel-aml-java library"
