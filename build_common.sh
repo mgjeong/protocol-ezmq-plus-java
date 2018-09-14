@@ -45,9 +45,9 @@ install_dependencies() {
     else
         git clone git@github.sec.samsung.net:RS7-EdgeComputing/protocol-ezmq-java.git
     fi
-    git checkout ${PROTOCOL_EZMQ_JAVA_VERSION}
 
     cd ./protocol-ezmq-java
+    git checkout ${PROTOCOL_EZMQ_JAVA_VERSION}
     echo -e "Building protocol-ezmq-java library"
     ./build.sh
 
@@ -58,9 +58,9 @@ install_dependencies() {
     else
         git clone git@github.sec.samsung.net:RS7-EdgeComputing/datamodel-aml-java.git
     fi
-	 git checkout ${DATAMODEL_AML_JAVA_VERSION}
 
     cd ./datamodel-aml-java
+    git checkout ${DATAMODEL_AML_JAVA_VERSION}
     echo -e "Building datamodel-aml-java library"
     ./build_common.sh --target_arch=${EZMQX_TARGET_ARCH} --install_prerequisites=${EZMQX_INSTALL_PREREQUISITES}
     if [ $? -ne 0 ]; then
