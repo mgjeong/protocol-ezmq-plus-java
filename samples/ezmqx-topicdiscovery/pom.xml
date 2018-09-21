@@ -4,7 +4,7 @@
 
   <groupId>ezmqx-topicdiscovery</groupId>
   <artifactId>ezmqx-topicdiscovery</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-Release</version>
   <packaging>jar</packaging>
 
   <name>topicdiscovery</name>
@@ -14,7 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.8</java.version>
     <maven.compiler.plugin.version>3.6.1</maven.compiler.plugin.version>
-    <ezmqx.version>0.0.1-SNAPSHOT</ezmqx.version>
+    <ezmqx.version>1.0.0-Release</ezmqx.version>
   </properties>
 
   <dependencies>
