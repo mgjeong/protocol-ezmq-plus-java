@@ -77,7 +77,7 @@ public class XmlSubscriber {
     System.out
         .println("      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -h true -secured 1");
     System.out.println("\nNote:");
-    System.out.println("  (1) -h stands for hierarchical search for topic from TNS server");
+    System.out.println("  (1) hierarchical search for topic from TNS server is not supported in this sample");
     System.out
         .println("  (2) docker mode will work only when sample is running in docker container");
 
@@ -92,7 +92,6 @@ public class XmlSubscriber {
     int n = 0;
     String topic = null;
     String ip = null;
-    String hierarchical = null;
     String tnsAddr = null;
     int port = 0;
     int isSecured = 0;
@@ -110,10 +109,6 @@ public class XmlSubscriber {
       } else if (args[n].equalsIgnoreCase("-t")) {
         topic = args[n + 1];
         System.out.println("Topic is : " + topic);
-        n = n + 2;
-      } else if (args[n].equalsIgnoreCase("-h")) {
-        hierarchical = args[n + 1];
-        System.out.println("Is hierarchical : " + hierarchical);
         n = n + 2;
       } else if (args[n].equalsIgnoreCase("-secured")) {
         isSecured = Integer.parseInt(args[n + 1]);
