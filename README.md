@@ -39,3 +39,4 @@ and serialization / deserialization middlewares along with some added functional
 ## Usage guide for ezmq library (for microservices)
 
 1. Reference ezmq-plus library APIs : [doc/javadoc/index.html](doc/javadoc/index.html)
+2. Topic naming convention guide : [Naming Guide](https://github.sec.samsung.net/RS7-EdgeComputing/protocol-ezmq-plus-cpp/blob/master/TOPIC_NAMING_CONVENTION.md)
