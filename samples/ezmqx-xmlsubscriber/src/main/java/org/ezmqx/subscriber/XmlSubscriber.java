@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.protocol.ezmqx.EZMQXAmlSubscriber;
 import org.protocol.ezmqx.EZMQXConfig;
 import org.protocol.ezmqx.EZMQXEndPoint;
 import org.protocol.ezmqx.EZMQXErrorCode;
@@ -66,20 +65,24 @@ public class XmlSubscriber {
     System.out.println(
         "      $ java -jar ezmqx-xmlsubscriber-sample.jar -ip 192.168.1.1 -port 5562 -t /topic -secured 1");
     System.out.println("\n  (3) For running in standalone mode: [With TNS] ");
-    System.out
-        .println("      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -tns 192.168.10.1");
+    System.out.println(
+        "      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -tns 192.168.10.1 -h true");
     System.out.println("\n  (4) For running in standalone mode [With TNS + Secured]: ");
     System.out.println(
         "      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -tns 192.168.10.1 -secured 1 ");
     System.out.println("\n  (5) For running in docker mode: ");
     System.out.println("      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -h true");
     System.out.println("\n  (6) For running in docker mode [Secured]: ");
-    System.out
-        .println("      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -h true -secured 1");
+    System.out.println("      $ java -jar ezmqx-xmlsubscriber-sample.jar -t /topic -secured 1");
     System.out.println("\nNote:");
-    System.out.println("  (1) -h stands for hierarchical search for topic from TNS server");
+    System.out.println(
+        "  (1) -h [hierarchical] option will work only with TNS/docker mode + unsecured mode");
+    System.out.println(
+        "  (2) While testing standalone mode without TNS, Make sure to give same topic on both publisher and subscriber");
+    System.out.println(
+        "  (3) While testing TNS/docker mode  + secured mode, Make sure to give same topic on both publisher and subscriber");
     System.out
-        .println("  (2) docker mode will work only when sample is running in docker container");
+        .println("  (4) docker mode will work only when sample is running in docker container");
 
     System.exit(-1);
   }
@@ -93,6 +96,7 @@ public class XmlSubscriber {
     String topic = null;
     String ip = null;
     String hierarchical = null;
+    boolean heirarchy = false;
     String tnsAddr = null;
     int port = 0;
     int isSecured = 0;
@@ -114,6 +118,9 @@ public class XmlSubscriber {
       } else if (args[n].equalsIgnoreCase("-h")) {
         hierarchical = args[n + 1];
         System.out.println("Is hierarchical : " + hierarchical);
+        if (hierarchical.equalsIgnoreCase("true")) {
+          heirarchy = true;
+        }
         n = n + 2;
       } else if (args[n].equalsIgnoreCase("-secured")) {
         isSecured = Integer.parseInt(args[n + 1]);
@@ -176,7 +183,7 @@ public class XmlSubscriber {
             EZMQXTopic topic1 = new EZMQXTopic(topic, IdList.get(0), false, endPoint);
             mSubscriber = EZMQXXmlSubscriber.getSubscriber(topic1, mCallback);
           } else {
-            mSubscriber = EZMQXXmlSubscriber.getSubscriber(topic, true, mCallback);
+            mSubscriber = EZMQXXmlSubscriber.getSubscriber(topic, heirarchy, mCallback);
           }
         } else {
           //Topic discovery
@@ -196,7 +203,7 @@ public class XmlSubscriber {
         }
       } else {
         if (0 == isSecured) {
-          mSubscriber = EZMQXXmlSubscriber.getSubscriber(topic, true, mCallback);
+          mSubscriber = EZMQXXmlSubscriber.getSubscriber(topic, heirarchy, mCallback);
         } else {
           // Do topic discovery to get end point info
           EZMQXTopicDiscovery topicDiscovery = new EZMQXTopicDiscovery();

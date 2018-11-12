@@ -68,7 +68,7 @@ install_dependencies() {
 usage() {
     echo -e "${BLUE}Usage:${NO_COLOUR} ./build_common.sh <option>"
     echo -e "${GREEN}Options:${NO_COLOUR}"
-    echo "  --target_arch=[x86_64|armhf]                                 :  Choose Target Architecture"
+    echo "  --target_arch=[x86_64|armhf-native]                          :  Choose Target Architecture"
     echo "  --with_dependencies=[true|false](default: false)             :  Build ezmq-plus along with dependencies [ezmq and aml]"
     echo "  --install_prerequisites=[true|false](default: false)         :  Install the prerequisite S/W to build internal aml library [protobuf]"
     echo "  -c                                                           :  Clean ezmq plus repository"
