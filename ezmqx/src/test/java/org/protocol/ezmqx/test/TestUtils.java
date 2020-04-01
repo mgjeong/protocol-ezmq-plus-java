@@ -35,6 +35,8 @@ public class TestUtils {
   public static final String INVALID_TOPIC = "topic";
   public static final String FILE_PATH = "src/test/resources/sample_data_model.aml";
   public static final String TNS_CONFIG_FILE_PATH = "src/test/resources/tnsConf.json";
+
+  // this key only used on unittests.
   public static String SERVER_SECRET_KEY = "[:X%Q3UfY+kv2A^.wv:(qy2E=bk0L][cm=mS3Hcx";
   public static String SERVER_PUBLIC_KEY = "tXJx&1^QE2g7WCXbF.$$TVP.wCtxwNhR8?iLi&S<";
   public static String CLIENT_PUBLIC_KEY = "-QW?Ved(f:<::3d5tJ$[4Er&]6#9yr=vha/caBc(";
@@ -42,10 +44,12 @@ public class TestUtils {
 
   public static final String CONFIG_URL =
       "http://pharos-node:48098/api/v1/management/device/configuration";
+
+  // TODO insert pharos-web-client-ip pharos-node-ip
   public static final String VALID_CONFIG_RESPONSE =
-      "{\"properties\": [{  \"pinginterval\": \"10\",  \"readOnly\": false}, {  \"anchoraddress\": \"10.113.66.234\",  \"readOnly\": true}, {  \"deviceid\": \"71e8707c-f93b-4b77-a606-2860868429b7\",  \"readOnly\": true}, {  \"devicename\": \"MgmtServer\",  \"readOnly\": false}, {  \"nodeaddress\": \"10.113.66.234\",  \"readOnly\": true}, {  \"readOnly\": false,  \"reverseproxy\": {\"enabled\": true  }}, {  \"anchorendpoint\": \"http://10.113.66.234:80/pharos-anchor/api/v1\",  \"readOnly\": true}, {  \"os\": \"linux\",  \"readOnly\": true}, {  \"platform\": \"Ubuntu 16.04.4 LTS\",  \"readOnly\": true}, {  \"processor\": [{\"cpu\": \"0\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }, {\"cpu\": \"1\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }, {\"cpu\": \"2\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }, {\"cpu\": \"3\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }],  \"readOnly\": true}] }";
+      "{\"properties\": [{  \"pinginterval\": \"10\",  \"readOnly\": false}, {  \"anchoraddress\": \"${PHAROS-WEB-CLIENT-IP}\",  \"readOnly\": true}, {  \"deviceid\": \"71e8707c-f93b-4b77-a606-2860868429b7\",  \"readOnly\": true}, {  \"devicename\": \"MgmtServer\",  \"readOnly\": false}, {  \"nodeaddress\": \"${PHAROS-NODE-IP}\",  \"readOnly\": true}, {  \"readOnly\": false,  \"reverseproxy\": {\"enabled\": true  }}, {  \"anchorendpoint\": \"http://${PHAROS-WEB-CLIENT-IP}:80/pharos-anchor/api/v1\",  \"readOnly\": true}, {  \"os\": \"linux\",  \"readOnly\": true}, {  \"platform\": \"Ubuntu 16.04.4 LTS\",  \"readOnly\": true}, {  \"processor\": [{\"cpu\": \"0\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }, {\"cpu\": \"1\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }, {\"cpu\": \"2\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }, {\"cpu\": \"3\",\"modelname\": \"Intel(R) Core(TM) i5 CPU 750  @ 2.67GHz\"  }],  \"readOnly\": true}] }";
   public static final String TNS_INFO_URL =
-      "http://10.113.66.234:80/pharos-anchor/api/v1/search/nodes?imageName=docker.sec.samsung.net:5000/edge/system-tns-server-go/ubuntu_x86_64";
+      "http://${PHAROS-WEB-CLIENT-IP}:80/pharos-anchor/api/v1/search/nodes?imageName=system-tns-server-go/ubuntu_x86_64";
   public static final String VALID_TNS_INFO_RESPONSE =
       "{\"nodes\": [{  \"id\": \"node_id_sample\",  \"ip\": \"192.168.0.1\",  \"status\": \"connected\",  \"apps\": [ \"app_id_sample1\", \"app_id_sample2\"  ],  \"config\": { \"properties\": [ {\"deviceid\": \"00000000-0000-0000-0000-000000000000\",\"readOnly\": true }, {\"devicename\": \"EdgeDevice\",\"readOnly\": false }, {\"pinginterval\": \"10\",\"readOnly\": false }, {\"os\": \"linux\",\"readOnly\": true }, {\"processor\": [{  \"cpu\": \"0\",  \"modelname\": \"Intel(R) Core(TM) i7-2600 CPU @ 3.40GHz\"}],\"readOnly\": true }, {\"platform\": \"Ubuntu 16.04.3 LTS\",\"readOnly\": true }, {\"reverseproxy\": {\"enabled\": true},\"readOnly\": true } ]  }}] }";
   public static final String RUNNING_APPS_URL = "http://pharos-node:48098/api/v1/management/apps";
@@ -56,7 +60,7 @@ public class TestUtils {
 
   public final static String hostName = readHostName(RestUtils.HOSTNAME);
   public static final String RUNNING_APP_INFO_RESPONSE =
-      "{\"images\": [{\"name\": \"docker.sec.samsung.net:5000/edge/system-provisioning-director/ubuntu_x86_64\"   }],     \"services\": [{  \"cid\": \""
+      "{\"images\": [{\"name\": \"system-provisioning-director/ubuntu_x86_64\"   }],     \"services\": [{  \"cid\": \""
           + hostName
           + "\",\"name\": \"system-provisioning-director\",   \"ports\": [{ \"IP\": \"0.0.0.0\",  \"PrivatePort\": 4000,   \"PublicPort\": 4000,\"Type\": \"tcp\" }],   \"state\": {  \"exitcode\": \"0\",  \"status\": \"running\"   }   }],     \"state\": \"running\" }";
 
