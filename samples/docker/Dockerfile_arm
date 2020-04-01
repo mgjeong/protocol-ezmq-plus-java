@@ -1,6 +1,4 @@
 FROM armhf/openjdk:openjdk-8-jdk
-MAINTAINER jay.sharma@samsung.com
-
 COPY  samples /samples
 COPY  libs /libs
 COPY run.sh run.sh
