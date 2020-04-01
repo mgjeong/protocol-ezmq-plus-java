@@ -38,6 +38,9 @@ public class XmlSubscriber {
   public static final String AML_FILE_PATH = "sample_data_model.aml";
   public static final String TNS_CONFIG_FILE_PATH = "tnsConf.json";
   public static final String LOCAL_HOST = "localhost";
+
+  // this key only used on samples
+  // TODO change to real key
   private static String mServerPublicKey = "tXJx&1^QE2g7WCXbF.$$TVP.wCtxwNhR8?iLi&S<";
   private static String mClientPublicKey = "-QW?Ved(f:<::3d5tJ$[4Er&]6#9yr=vha/caBc(";
   private static String mClientSecretKey = "ZB1@RS6Kv^zucova$kH(!o>tZCQ.<!Q)6-0aWFmW";

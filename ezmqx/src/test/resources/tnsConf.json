@@ -1,3 +1,3 @@
 {
-	"imageName":"docker.sec.samsung.net:5000/edge/system-tns-server-go/ubuntu_x86_64"
+	"imageName":"${PATH_OF_SYSTEM_TNS_SERVER_GO}/ubuntu_x86_64"
 }
