@@ -19,9 +19,9 @@ and serialization / deserialization middlewares along with some added functional
   - [How to install](https://maven.apache.org/install.html)
   - [Setting up proxy for maven](https://maven.apache.org/guides/mini/guide-proxies.html)
 - protocol-ezmq-java
-  - Since [protocol-ezmq-java](https://github.sec.samsung.net/RS7-EdgeComputing/protocol-ezmq-java) will be downloaded and built when protocol-ezmq-plus-java is built, check the prerequisites of it. It can be installed by build option (See 'How to build')
+  - Since [protocol-ezmq-java](https://github.com/edgexfoundry-holding/protocol-ezmq-java) will be downloaded and built when protocol-ezmq-plus-java is built, check the prerequisites of it. It can be installed by build option (See 'How to build')
 - datamodel-aml-java
-  - Since [datamodel-aml-java](https://github.sec.samsung.net/RS7-EdgeComputing/datamodel-aml-java) will be downloaded and built when protocol-ezmq-plus-java is built, check the prerequisites of it. It can be installed by build option (See 'How to build')
+  - Since [datamodel-aml-java](https://github.com/edgexfoundry-holding/datamodel-aml-java) will be downloaded and built when protocol-ezmq-plus-java is built, check the prerequisites of it. It can be installed by build option (See 'How to build')
  
  **Note:** Set proxy for git, if required:
  ```shell
@@ -39,4 +39,4 @@ and serialization / deserialization middlewares along with some added functional
 ## Usage guide for ezmq library (for microservices)
 
 1. Reference ezmq-plus library APIs : [doc/javadoc/index.html](doc/javadoc/index.html)
-2. Topic naming convention guide : [Naming Guide](https://github.sec.samsung.net/RS7-EdgeComputing/protocol-ezmq-plus-cpp/blob/master/TOPIC_NAMING_CONVENTION.md)
+2. Topic naming convention guide : [Naming Guide](https://github.com/mgjeong/protocol-ezmq-plus-cpp/blob/master/TOPIC_NAMING_CONVENTION.md)

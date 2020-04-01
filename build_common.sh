@@ -40,7 +40,7 @@ install_dependencies() {
     if [ -d "./protocol-ezmq-java" ] ; then
         echo "protocol-ezmq-java already exists"
     else
-        git clone git@github.sec.samsung.net:RS7-EdgeComputing/protocol-ezmq-java.git
+        git clone git@github.com:edgexfoundry-holding/protocol-ezmq-java.git
     fi
 
     cd ./protocol-ezmq-java
@@ -52,7 +52,7 @@ install_dependencies() {
     if [ -d "./datamodel-aml-java" ] ; then
         echo "datamodel-aml-java already exists"
     else
-        git clone git@github.sec.samsung.net:RS7-EdgeComputing/datamodel-aml-java.git
+        git clone git@github.com:edgexfoundry-holding/datamodel-aml-java.git
     fi
 
     cd ./datamodel-aml-java
